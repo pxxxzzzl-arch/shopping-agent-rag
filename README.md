@@ -1,11 +1,14 @@
 # 🛒 多Agent电商推荐与营销系统
 
+> 上游项目来源：[bcefghj/multi-agent-ecommerce-system](https://github.com/bcefghj/multi-agent-ecommerce-system)。本仓库的 Python 二次开发集中在 [`python/shopping_agent/`](python/shopping_agent/)；配套新增测试、合成目录、历史评测报告、依赖、Docker/Compose 和 CI，使用说明见 [SHOPPING_AGENT.md](python/SHOPPING_AGENT.md)。原有 `python/agents/`、Go 和 Java 教学实现不属于这条新框架的评测范围。
+>
+> 新框架只用明确标记的合成商品与 FAQ 做本地离线验证；没有真实商品授权、真人标注、真实流量或线上 CTR/GMV 提升证据。下方原项目的架构介绍和面试问答不等于这条 Python 框架的实测结果。
+
 > **面向小白的企业级 AI Agent 项目** — 从零理解 Multi-Agent 架构，配套三语言代码 + 八股文 + 简历模板 + STAR面试话术，找工作全流程覆盖。
 
-[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](python/)
+[![Python](https://img.shields.io/badge/Python-3.11%20local-blue?logo=python)](python/)
 [![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=java)](java/)
 [![Go](https://img.shields.io/badge/Go-1.22%2B-00ADD8?logo=go)](go/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
@@ -21,7 +24,7 @@
 8. [项目文件结构](#-项目文件结构)
 9. [面试资料索引](#-面试资料索引)
 10. [面试八股文精选](#-面试八股文精选10题)
-11. [简历写法（直接复制）](#-简历写法直接复制)
+11. [简历材料核对](#-简历材料核对)
 12. [参考资料与致谢](#-参考资料与致谢)
 
 ---
@@ -416,7 +419,7 @@ func (s *Supervisor) Recommend(ctx context.Context, req *model.RecommendRequest)
 
 ### 前置条件
 
-- Python 3.11+ / Java 17+ / Go 1.22+（选一个语言即可）
+- Python 3.11（新增 Python 框架本机已验证；3.12 的 CI 尚未实跑）/ Java 17+ / Go 1.22+（选一个语言即可）
 - 申请 LLM API Key（推荐 [MiniMax](https://www.minimax.chat/) 或 [阿里通义](https://dashscope.aliyun.com/)，有免费额度）
 
 ---
@@ -643,9 +646,9 @@ multi-agent-ecommerce-system/
 
 | 文档 | 内容亮点 | 什么时候看 |
 |------|---------|-----------|
-| [📋 面试完全指南](docs/interview-guide.md) | 八股文30题（含标准答案）+ STAR法3分钟/1分钟两版话术 + 面试官追问预案 | **面试前一天通读** |
-| [📝 简历模板](docs/resume-template.md) | 应届/社招两套模板，项目经验直接复制，按岗位调整技术栈关键词 | **投简历时参考** |
-| [🏗 架构设计文档](docs/architecture.md) | 系统架构图 + Agent职责矩阵 + 稳定性设计 + 性能数据 | **被问架构时参考** |
+| [📋 面试完全指南](docs/interview-guide.md) | 上游示例问答与 STAR 话术；涉及实现和结果须用实际代码复核 | **面试前核对** |
+| [📝 简历模板](docs/resume-template.md) | 基于当前 Python 改造的填写框架；只保留个人贡献与有证据的数据 | **投简历时参考** |
+| [🏗 架构设计文档](docs/architecture.md) | 上游架构图、Agent 职责与稳定性设计；性能数字须复测 | **被问架构时参考** |
 | [🔍 代码讲解指南](docs/code-walkthrough.md) | 每个文件逐行解释 + 面试话术 + 常见追问应对 | **被问代码时参考** |
 
 ---
@@ -779,39 +782,23 @@ multi-agent-ecommerce-system/
 
 ---
 
-### Q10：系统延迟怎么优化到 P99 < 2s？
+### Q10：系统延迟可以怎样优化？
 
-> 四个优化手段：
-> 1. **并行化**：Phase1 和 Phase2 各两个 Agent 并行，节省约 50% 时间
+> 以下是设计思路，尚无这条 Python 框架的生产延迟测试结果：
+> 1. **并行化**：独立任务并行执行，减少串行等待
 > 2. **超时熔断**：单 Agent 超时不等待，返回降级结果，避免长尾拖累
-> 3. **Redis 缓存**：用户画像热点数据缓存，命中率 > 80% 的情况下延迟从 200ms → 5ms
-> 4. **LLM 精简**：Prompt 控制在 500 Token 以内，减少 LLM 推理时间
+> 3. **缓存**：对可缓存的热点数据设置失效策略，再测命中率与延迟
+> 4. **模型调用控制**：减少不必要的调用，并分别测量检索、模型和整体耗时
 
 👉 **更多30题详见** [docs/interview-guide.md](docs/interview-guide.md)
 
 ---
 
-## 📋 简历写法（直接复制）
+## 📋 简历材料核对
 
-```
-多Agent电商推荐与营销系统 | 个人项目 | 2026.01 - 2026.04
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• 设计并实现基于 Supervisor 模式的多 Agent 协同架构，含用户画像、商品推荐、
-  营销文案、库存决策 4 个专业 Agent，采用并行分发+聚合的编排模式
+本仓库起点是[上游教学项目](https://github.com/bcefghj/multi-agent-ecommerce-system)。准备个人简历时，应先区分上游原有功能与自己实际完成、能够现场解释的改造。新增 Python 导购框架的实现和复现命令见 [SHOPPING_AGENT.md](python/SHOPPING_AGENT.md)：LangGraph 条件路由、SQLite 商品与来源版本管理、BM25／向量／混合检索、当前库存及来源复核、离线评测和质量门禁。
 
-• 基于 Redis Sorted Set 实现实时用户特征工程（RFM 模型+行为序列），
-  特征更新延迟 < 100ms，支持 1h/24h/7d 多时间窗口滑动计算
-
-• 集成 LLM 实现个性化营销文案生成，基于用户画像动态切换 5 套 Prompt 模板，
-  文案合规率 100%（广告法敏感词自动过滤）
-
-• 设计流量分桶 + Thompson Sampling A/B 测试引擎，支持 Agent/模型/Prompt
-  三层实验，推荐 CTR 提升 15%，文案点击率提升 23%
-
-• 提供 Python(LangGraph) / Java(Spring AI Alibaba) / Go(goroutine) 三语言实现
-
-技术栈：LangGraph · Spring AI Alibaba · Go · Redis · Milvus · FastAPI · Docker
-```
+可引用的结果仅限明确标记的合成数据离线评测，并附上题集、指标和首跑／调优后的区别。当前没有获授权的真实商品、真人标注、线上流量或可归因的 CTR／GMV 提升，也没有可写成生产延迟或合规率的实测数据。不要把上游项目的实现、示例日期或未验证数字写成自己的工作成果。
 
 ---
 
@@ -830,9 +817,9 @@ multi-agent-ecommerce-system/
 
 ---
 
-## 📄 License
+## 📄 使用许可
 
-[MIT License](LICENSE) — 随意使用、修改、商用，保留 License 声明即可。
+当前仓库快照没有 `LICENSE` 或 `NOTICE` 文件；使用或再分发前请核对上游项目的实际许可信息。
 
 ---
 

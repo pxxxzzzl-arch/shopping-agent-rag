@@ -1,0 +1,18 @@
+services:
+  shopping-api:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.shopping
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      SHOPPING_DATABASE_URL: sqlite:////data/shopping_agent.db
+      SHOPPING_SEED_DEMO: "true"
+      SHOPPING_LLM_API_KEY: ${SHOPPING_LLM_API_KEY:-}
+      SHOPPING_LLM_MODEL: ${SHOPPING_LLM_MODEL:-}
+      SHOPPING_LLM_BASE_URL: ${SHOPPING_LLM_BASE_URL:-}
+    volumes:
+      - shopping_data:/data
+
+volumes:
+  shopping_data:

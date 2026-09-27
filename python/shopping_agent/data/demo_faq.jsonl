@@ -1,0 +1,6 @@
+{"kind":"faq","faq_id":"DEMO-FAQ-01","question":"演示商品是真实在售商品吗？","answer":"不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。","license":"synthetic_demo","data_origin":"synthetic_demo"}
+{"kind":"faq","faq_id":"DEMO-FAQ-02","question":"缺货商品能否推荐购买？","answer":"演示导购不会将库存为 0 的商品作为当前可购买推荐；库存不足时会说明。","license":"synthetic_demo","data_origin":"synthetic_demo"}
+{"kind":"faq","faq_id":"DEMO-FAQ-03","question":"商品标价和库存保证实时吗？","answer":"不能保证。这些数值只是本地演示数据库的快照；实际使用时应以获授权且已更新的权威商品记录为准。","license":"synthetic_demo","data_origin":"synthetic_demo"}
+{"kind":"faq","faq_id":"DEMO-FAQ-04","question":"演示充电器保证兼容所有电脑吗？","answer":"不保证。演示充电器只列出部分适用设备，具体兼容性和充电速度需要核对设备接口与充电协议。","license":"synthetic_demo","data_origin":"synthetic_demo"}
+{"kind":"faq","faq_id":"DEMO-FAQ-05","question":"演示平板的手写笔和键盘随商品附赠吗？","answer":"没有这样的依据。合成商品 DEMO-T02 的手写笔需单独购买，DEMO-T03 的键盘也需另购。","license":"synthetic_demo","data_origin":"synthetic_demo"}
+{"kind":"faq","faq_id":"DEMO-FAQ-06","question":"系统提供真实折扣或优惠券吗？","answer":"演示资料没有提供真实折扣或优惠券，不能保证任何优惠。","license":"synthetic_demo","data_origin":"synthetic_demo"}

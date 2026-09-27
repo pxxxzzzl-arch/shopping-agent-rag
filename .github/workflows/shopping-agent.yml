@@ -1,0 +1,55 @@
+name: Shopping agent
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    defaults:
+      run:
+        working-directory: python
+    env:
+      SHOPPING_LLM_API_KEY: ""
+      SHOPPING_LLM_MODEL: ""
+      SHOPPING_DATABASE_URL: sqlite://
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            python/requirements-shopping-dev.txt
+            python/requirements-shopping.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-shopping-dev.txt
+      - name: Run complete shopping framework tests (exclude legacy numpy test)
+        run: python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py
+      - name: Evaluate all frozen synthetic catalogs
+        run: |
+          set -euo pipefail
+          python -m shopping_agent.evaluation > "$RUNNER_TEMP/shopping-original.json"
+          python -m shopping_agent.catalog_evaluation \
+            --catalog shopping_agent/data/transfer_products.jsonl \
+            --labels shopping_agent/data/transfer_product_labels.jsonl \
+            --output "$RUNNER_TEMP/shopping-transfer.json"
+          python -m shopping_agent.catalog_evaluation \
+            --catalog shopping_agent/data/constraint_v1_catalog.jsonl \
+            --labels shopping_agent/data/constraint_v1_labels.jsonl \
+            --output "$RUNNER_TEMP/shopping-constraint.json"
+          python -m shopping_agent.quality_gate \
+            --original "$RUNNER_TEMP/shopping-original.json" \
+            --transfer "$RUNNER_TEMP/shopping-transfer.json" \
+            --constraint "$RUNNER_TEMP/shopping-constraint.json"

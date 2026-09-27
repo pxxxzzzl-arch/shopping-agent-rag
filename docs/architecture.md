@@ -1,5 +1,7 @@
 # 系统架构设计文档
 
+> 本文主要记录[上游教学项目](https://github.com/bcefghj/multi-agent-ecommerce-system)的架构设想，图中的 Redis、Milvus、MySQL/WMS 与四 Agent 流程不能直接当作新增 Python 导购框架的运行事实。新增框架的实际模块、SQLite 存储、检索模式和离线验证见 [SHOPPING_AGENT.md](../python/SHOPPING_AGENT.md)。下文延迟数字仅用于说明串并行依赖，没有生产压测或 P99 证据。
+
 ## 1. 系统总览
 
 本系统采用 **Supervisor + 4 Agent 并行聚合** 架构,实现电商场景下的个性化推荐全链路。
@@ -86,8 +88,8 @@ Redis (Feature Store)          Milvus (向量库)         MySQL (业务数据)
   Phase 3: 10s                   (文案, 依赖前两步)
   合计: ≈ 8s + 8s + 10s = 26s  (仍然太慢, 因为LLM每次不需要这么久)
   
-  实际: LLM平均响应~1-2s
-  实际总延迟: ≈ 2s + 2s + 2s = 6s (P99 < 8s)
+  若各阶段耗时均为 2s，则示例总延迟为约 6s；
+  这只是计算示例，不能推导实际 P99。
 ```
 
 ### 依赖关系
