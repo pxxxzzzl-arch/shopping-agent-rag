@@ -1,8 +1,34 @@
-# 🛒 多Agent电商推荐与营销系统
+# 🛒 Python 导购 Agent 与上游多 Agent 教学项目
 
 > 上游项目来源：[bcefghj/multi-agent-ecommerce-system](https://github.com/bcefghj/multi-agent-ecommerce-system)。本仓库的 Python 二次开发集中在 [`python/shopping_agent/`](python/shopping_agent/)；配套新增测试、合成目录、历史评测报告、依赖、Docker/Compose 和 CI，使用说明见 [SHOPPING_AGENT.md](python/SHOPPING_AGENT.md)。原有 `python/agents/`、Go 和 Java 教学实现不属于这条新框架的评测范围。
 >
 > 新框架只用明确标记的合成商品与 FAQ 做本地离线验证；没有真实商品授权、真人标注、真实流量或线上 CTR/GMV 提升证据。下方原项目的架构介绍和面试问答不等于这条 Python 框架的实测结果。
+
+## 优先入口：新增 Python 导购 Agent
+
+在**当前仓库**根目录运行；Python 3.11 或 3.12，默认不需要模型密钥：
+
+```bash
+cd python
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -r requirements-shopping-dev.txt
+.venv/bin/python -m uvicorn shopping_agent.app:app --host 127.0.0.1 --port 8000
+```
+
+另开终端验证（服务启动后）：
+
+```bash
+curl http://127.0.0.1:8000/health
+curl -X POST http://127.0.0.1:8000/api/v1/shop/recommend \
+  -H 'Content-Type: application/json' \
+  -d '{"user_id":"demo-user","query":"现货降噪耳机，预算500元","num_items":2}'
+```
+
+接口说明与 RAG、Agent、A/B 的离线复现见 [Python 导购文档](python/SHOPPING_AGENT.md)。本机默认导入 30 件**合成**商品、6 条**合成** FAQ；价格与库存也仅是本地演示快照。第四套独立合成题的首跑证据和当前同题回归在文档中分开列示。容器配置为 `docker-compose.shopping.yml`，仅绑定本机地址；未经鉴权和真实数据授权，不用于公开服务。
+
+## 上游四 Agent 教学入口
+
+以下架构、三语言示例、旧 `python/main.py` 与 `/api/v1/recommend` 属于上游教学链路。它们的代码和依赖与新增 `shopping_agent` 分开，不能把下方示例数字或旧接口视为新服务的实测结果。
 
 > **面向小白的企业级 AI Agent 项目** — 从零理解 Multi-Agent 架构，配套三语言代码 + 八股文 + 简历模板 + STAR面试话术，找工作全流程覆盖。
 
@@ -424,12 +450,11 @@ func (s *Supervisor) Recommend(ctx context.Context, req *model.RecommendRequest)
 
 ---
 
-### Python 版（推荐小白从这里开始）
+### 上游 Python 教学版（旧入口）
 
 ```bash
-# 1. 克隆项目
-git clone https://github.com/bcefghj/multi-agent-ecommerce-system.git
-cd multi-agent-ecommerce-system/python
+# 1. 使用当前仓库中的上游教学代码
+cd python
 
 # 2. 创建虚拟环境（避免依赖冲突）
 python -m venv .venv
@@ -501,25 +526,28 @@ curl -X POST http://localhost:8080/api/v1/recommend \
 
 ---
 
-### Docker 一键部署（含 Redis + MySQL 等依赖）
+### 上游 Python 教学容器（未实测启动）
 
 ```bash
 # 在项目根目录运行
-docker-compose up -d
+docker compose -f docker-compose.yml up --build -d
 
 # 等待所有服务启动（约30秒）
-docker-compose ps
+docker compose -f docker-compose.yml ps
 
 # 服务地址
 # Python API:  http://localhost:8000
-# Java API:    http://localhost:8080
 # Redis:       localhost:6379
 # MySQL:       localhost:3306
 ```
 
+该旧 Compose 只声明 Python API、Redis、Milvus、MySQL，**没有 Java 容器**；其旧 Python 接口与新增导购接口不同。新增导购容器请用 `docker compose -f docker-compose.shopping.yml up --build`，配置使用本机端口与合成数据。容器实际启动情况见 [导购文档](python/SHOPPING_AGENT.md)。
+
 ---
 
 ## 📡 API 接口文档
+
+以下接口表描述上游教学版；新增导购使用 `GET /health`、`GET /api/v1/catalog`、`POST /api/v1/shop/recommend` 和 `POST /api/v1/events`，以 [导购文档](python/SHOPPING_AGENT.md) 与 `python/shopping_agent/app.py` 为准。
 
 ### 接口列表
 
@@ -591,7 +619,8 @@ multi-agent-ecommerce-system/
 │
 ├── README.md                          # 📄 本文件（项目总览）
 ├── plan.md                            # 📋 完整项目计划（从调研到上线）
-├── docker-compose.yml                 # 🐳 一键启动所有服务
+├── docker-compose.yml                 # 上游 Python 教学容器及依赖，不含 Java
+├── docker-compose.shopping.yml        # 新增导购容器，仅本机端口
 │
 ├── docs/                              # 📚 面试全套文档
 │   ├── interview-guide.md             # 🎯 面试指南（八股文30题 + STAR法话术）
@@ -599,7 +628,11 @@ multi-agent-ecommerce-system/
 │   ├── architecture.md                # 🏗 架构设计详解（含数据流图）
 │   └── code-walkthrough.md            # 🔍 代码逐行讲解（面向小白）
 │
-├── python/                            # 🐍 Python 实现（推荐入门）
+├── python/                            # 🐍 上游教学版与新增导购并存
+│   ├── shopping_agent/                # 新增导购服务，入口 shopping_agent.app:app
+│   ├── SHOPPING_AGENT.md              # 新增导购使用和评测说明
+│   ├── requirements-shopping-dev.txt  # 新增导购开发及测试依赖
+│   ├── Dockerfile.shopping            # 新增导购容器
 │   ├── main.py                        # FastAPI 服务入口
 │   ├── requirements.txt               # 依赖列表
 │   ├── .env.example                   # 环境变量模板

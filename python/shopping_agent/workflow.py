@@ -28,7 +28,7 @@ from .retrieval import (
 )
 from .schemas import EvidenceRef, Recommendation, ShopRequest, ShopResponse
 from .seed import seed_demo_data, seed_demo_faq_data
-from .storage import CatalogStore, Product
+from .storage import CatalogStore, Product, verbatim_source_text
 
 
 class ShoppingState(TypedDict, total=False):
@@ -799,21 +799,23 @@ class ShoppingService:
                 )
             ):
                 continue
-            evidence = [
-                EvidenceRef(
-                    source_id=hit.document.source_id,
-                    source_type=hit.document.source_type,
-                    excerpt=_excerpt(hit.document.text),
-                )
-                for hit in by_product.get(current.product_id, [])[:2]
-                if self.store.get_document(hit.document.source_id) is not None
-            ]
-            if description_source is not None:
+            evidence = []
+            for hit in by_product.get(current.product_id, [])[:2]:
+                source = self.store.get_document(hit.document.source_id)
+                quote = verbatim_source_text(source) if source is not None else ""
+                if source is not None and quote and source.product_id == current.product_id:
+                    evidence.append(EvidenceRef(
+                        source_id=source.source_id,
+                        source_type=source.source_type,
+                        excerpt=_excerpt(quote),
+                    ))
+            description_quote = verbatim_source_text(description_source) if description_source is not None else ""
+            if description_source is not None and description_quote:
                 evidence = [
                     EvidenceRef(
                         source_id=description_source.source_id,
                         source_type="description",
-                        excerpt=claim_excerpt(request.query, description_source.text),
+                        excerpt=claim_excerpt(request.query, description_quote),
                     ),
                     *[
                         ref for ref in evidence

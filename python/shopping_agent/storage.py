@@ -55,6 +55,28 @@ class SourceDocument:
     faq_id: str | None = None
 
 
+def verbatim_source_text(document: SourceDocument) -> str:
+    """Return one cited field exactly as it appeared in the imported JSONL.
+
+    Search indexes intentionally join fields for retrieval. A joined search
+    string is not itself a quotation of the original product or FAQ record.
+    """
+    try:
+        row = json.loads(document.original_text)
+        if document.source_type == "description":
+            value = row["description"]
+        elif document.source_type == "answer":
+            value = row["answer"]
+        elif document.source_type == "review":
+            review_index = int(document.source_id.split(":review:", 1)[1].split(":", 1)[0]) - 1
+            value = row["reviews"][review_index]
+        else:
+            return ""
+    except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError):
+        return ""
+    return value if isinstance(value, str) and value in document.original_text else ""
+
+
 Base = registry().generate_base()
 
 

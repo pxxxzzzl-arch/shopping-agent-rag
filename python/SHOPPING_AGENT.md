@@ -83,6 +83,8 @@ curl -X POST http://127.0.0.1:8000/api/v1/events \
 docker compose -f docker-compose.shopping.yml up --build
 ```
 
+2026-09-28 本机执行 `docker compose -f docker-compose.shopping.yml config --quiet`、`docker build -f python/Dockerfile.shopping -t shopping-agent-smoke:20260928 python` 均成功；新镜像临时绑定 `127.0.0.1:18080` 后，`GET /health` 返回 `{"status":"healthy","catalog_products":30}`。冒烟容器已停止。这只验证本机镜像启动与健康接口，不表示已部署到公开环境。
+
 设置 `SHOPPING_LLM_API_KEY`、`SHOPPING_LLM_MODEL`，按需设置 `SHOPPING_LLM_BASE_URL`，可开启模型辅助选择重点商品和证据。默认不访问外部模型。
 
 请求可增加 `conversation_id` 持久化多轮上下文，以及 `retrieval_mode`（`bm25`、`vector`、`hybrid`）。响应保留原字段，并增加 `route`、`routing_reason`、`tool_trace`、`knowledge_evidence` 和实际检索模式。商品、FAQ、混合三类会执行不同工具轨迹；工具失败时返回可核验的降级答复。
@@ -177,7 +179,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python /private/tmp/shopping-agent-venv/bin
 
 ## Git 快照与离线 CI 门禁
 
-`.github/workflows/shopping-agent.yml` 在 Python 3.11/3.12 矩阵中运行 `python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py`。排除的是原项目缺 `numpy` 的旧测试；其余新框架测试全部运行。CI 随后分别生成原 38 题、迁移目录和第三目录的当前代码 JSON 评测，调用零额外依赖的 `python -m shopping_agent.quality_gate`。门禁要求 38 题无错误且已有质量率为 1、三种请求模式齐全、迁移目录完整集合 24/24、第三目录 18/18；还检查无不合格商品、无答案拒推、实际检索模式不发生不匹配。缺字段、错误数增加或任一模式分数下降都会使步骤非零退出。所有阈值都是**这些合成题的同题回归门槛**，不是未见问题准确率。
+`.github/workflows/shopping-agent.yml` 在 Python 3.11/3.12 矩阵中运行 `python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py`。排除的是原项目缺 `numpy` 的旧测试；其余新框架测试全部运行。CI 随后分别生成原 38 题、迁移目录、第三目录和第四套证据目录的当前代码 JSON 评测，调用零额外依赖的 `python -m shopping_agent.quality_gate`。原三套门槛保留：38 题无错误且已有质量率为 1，迁移目录完整集合 24/24，第三目录 18/18，三种实际检索模式均执行。第四套另要求三模式各商品集合 36/36、原子覆盖至少 89/100、无法由金标验证的支持条件不超过 41/130、纯无答案拒答 9/9、当前原文有效引用等于总引用且总数至少 183、运行错误 0；还用逐题记录反核汇总。缺字段、错误数增加或任一模式分数下降都会使步骤非零退出。所有阈值都是**这些合成题的同题回归门槛**，不是未见问题准确率。
 
 从仓库根目录可用同一套命令在临时目录生成报告并执行门禁；报告输出路径每次须为新文件，因为目录评测入口拒绝覆盖：
 
@@ -188,10 +190,11 @@ export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python
 python -m shopping_agent.evaluation > "$report_dir/original.json"
 python -m shopping_agent.catalog_evaluation --catalog python/shopping_agent/data/transfer_products.jsonl --labels python/shopping_agent/data/transfer_product_labels.jsonl --output "$report_dir/transfer.json"
 python -m shopping_agent.catalog_evaluation --catalog python/shopping_agent/data/constraint_v1_catalog.jsonl --labels python/shopping_agent/data/constraint_v1_labels.jsonl --output "$report_dir/constraint.json"
-python -m shopping_agent.quality_gate --original "$report_dir/original.json" --transfer "$report_dir/transfer.json" --constraint "$report_dir/constraint.json"
+python -m shopping_agent.grounding_evaluation --catalog python/shopping_agent/data/grounding_v1_catalog.jsonl --labels python/shopping_agent/data/grounding_v1_labels.jsonl --output "$report_dir/grounding.json"
+python -m shopping_agent.quality_gate --original "$report_dir/original.json" --transfer "$report_dir/transfer.json" --constraint "$report_dir/constraint.json" --grounding "$report_dir/grounding.json"
 ```
 
-仓库内 `reports/*first_run.json` 是当时旧代码首跑的历史证据；旧代码状态没有提交，不能声称用当前 Git 快照重新生成过当年的首跑分数。本机只验证了 Python 3.11.3；GitHub Actions 和 Python 3.12 尚未实际运行，不能称它们已通过。
+仓库内 `reports/*first_run.json` 是当时旧代码首跑的历史证据，不能声称用当前代码重新生成过当年的首跑分数。本机只验证了 Python 3.11；GitHub Actions 和 Python 3.12 尚未实际运行，不能称它们已通过。
 
 ## 第四套合成目录：逐条件与原文证据首跑
 
@@ -202,6 +205,8 @@ python -m shopping_agent.quality_gate --original "$report_dir/original.json" --t
 首次报告 [grounding_v1_first_run.json](reports/grounding_v1_first_run.json) 保存的是调优前历史结果，不覆盖：三路均为商品 ID 集合 **36/36**、受支持原子覆盖 **89/100**、未获金标支持的预测条件 **41/130**、当前原文有效引用 **140/183**、纯无答案拒答 **9/9**、路线匹配 **36/36**、运行错误 **0**。商品集合指标包含 FAQ 题的空商品集合，因此不能读成 FAQ 回答正确率；FAQ 须另看逐题原子覆盖与引用。部分商品理由和 FAQ 引用把多个字段拼成一段摘录，虽然来源 ID 有效，拼接字符串并未逐字存在于原始 JSONL 行；严格核验将其判为无效。首跑报告保留这一缺口，不改业务代码或回写标签。三路结果相同只说明这组题的商品集合结果相同，不能证明检索策略等效或真实业务效果。
 
 验收时发现首跑逐题数据缺少预测条件与错误引用的一一对应。保留原报告后，补充[同题审计复核报告](reports/grounding_v1_audit_recheck.json)：每条预测条件现在列出字段、运算符、值、状态、冲突、引用片段、当前性、匹配金标及不支持原因；每条金标也能定位对应预测或未覆盖原因。三路核心汇总数值与首跑一致。这是**评测器诊断扩展后的同题复核**，不是新的独立首跑，更不能称商品推荐或 RAG 质量得到提升。
+
+随后仅修业务引用：商品推荐、最终核验 Agent 和 FAQ 回答改从当前导入行的单一原文字段摘录，不再把名称、类目、描述或 FAQ 问题、答案拼成假引文。当前代码在同一冻结题集的临时复核中，三路均为商品集合 **36/36**、原子覆盖 **99/100**、无法由金标验证的预测 **41/130**、当前原文有效引用 **183/183**、拒答 **9/9**、错误 **0**；这是按首跑失败项修复后的**同题开发复测**。41 条中 35 条是无对应金标的类目快照，5 条是无对应金标的库存快照；剩余 Q19 为“不是 75 Hz”条件由“165 Hz”正向原文支持，但冻结标签的条件极性与来源极性不相同，评测据此保留不支持判定。本轮不修改金标或评测口径，也不把该计数称为 41 条已证实错误。
 
 先按“本地运行”小节激活虚拟环境，再从 `python` 目录运行以下命令。`--output` 必须是不存在的新路径；已存首跑文件拒绝覆盖：
 

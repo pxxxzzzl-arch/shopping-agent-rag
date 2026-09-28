@@ -49,7 +49,12 @@ jobs:
             --catalog shopping_agent/data/constraint_v1_catalog.jsonl \
             --labels shopping_agent/data/constraint_v1_labels.jsonl \
             --output "$RUNNER_TEMP/shopping-constraint.json"
+          python -m shopping_agent.grounding_evaluation \
+            --catalog shopping_agent/data/grounding_v1_catalog.jsonl \
+            --labels shopping_agent/data/grounding_v1_labels.jsonl \
+            --output "$RUNNER_TEMP/shopping-grounding.json"
           python -m shopping_agent.quality_gate \
             --original "$RUNNER_TEMP/shopping-original.json" \
             --transfer "$RUNNER_TEMP/shopping-transfer.json" \
-            --constraint "$RUNNER_TEMP/shopping-constraint.json"
+            --constraint "$RUNNER_TEMP/shopping-constraint.json" \
+            --grounding "$RUNNER_TEMP/shopping-grounding.json"

@@ -6,9 +6,4 @@ __pycache__/
 *.db
 *.sqlite3
 tests/
-agents/
-config/
-models/
-orchestrator/
-services/
 SHOPPING_AGENT.md

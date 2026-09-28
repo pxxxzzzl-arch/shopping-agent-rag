@@ -10,7 +10,7 @@ from typing import Callable, Literal
 from .retrieval import EvidenceIndex, RetrievalHit, SearchResult, _terms
 from .product_requirements import claim_excerpt, missing_claims, required_claims
 from .schemas import EvidenceRef, Recommendation, ShopRequest
-from .storage import CatalogStore, Product
+from .storage import CatalogStore, Product, verbatim_source_text
 
 
 Route = Literal["product", "faq", "mixed"]
@@ -256,7 +256,12 @@ class KnowledgeAgent:
             hit, current, faq = max(
                 valid, key=lambda entry: _question_score(task.query, entry[2].question)
             )
-            excerpt = " ".join(current.text.split())
+            excerpt = verbatim_source_text(current)
+            if not excerpt:
+                return KnowledgeResult(
+                    "当前 FAQ 原文无法核实，无法回答该问题。",
+                    (), (), warnings + ("FAQ 原文缺失。",), found.actual_mode,
+                )
             ref = EvidenceRef(
                 source_id=current.source_id,
                 source_type="answer",
@@ -349,13 +354,15 @@ class VerificationAgent:
                         task.request.query, source.text
                     ):
                         claim_source_verified = True
-                    evidence.append(EvidenceRef(
-                        source_id=source.source_id,
-                        source_type=source.source_type,
-                        excerpt=claim_excerpt(task.request.query, source.text)
-                        if source.source_type == "description" else
-                        " ".join(source.text.split())[:100],
-                    ))
+                    quote = verbatim_source_text(source)
+                    if quote:
+                        evidence.append(EvidenceRef(
+                            source_id=source.source_id,
+                            source_type=source.source_type,
+                            excerpt=claim_excerpt(task.request.query, quote)
+                            if source.source_type == "description" else
+                            " ".join(quote.split())[:100],
+                        ))
             if has_explicit_claims and not claim_source_verified:
                 # A source containing unverified price or discount language is
                 # deliberately not cited. The catalog item may still be shown
