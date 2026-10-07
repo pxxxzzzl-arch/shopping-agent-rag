@@ -56,14 +56,24 @@ flowchart LR
 
 ## 本地运行
 
-在 `python/` 目录执行，Python 3.11 或 3.12：
+从仓库根目录执行，Python 3.11 或 3.12：
 
 ```bash
-python3.11 -m venv .venv
+./scripts/setup_shopping_env.sh
+cd python
 source .venv/bin/activate
-pip install -r requirements-shopping-dev.txt
-uvicorn shopping_agent.app:app --reload
+.venv/bin/python -m uvicorn shopping_agent.app:app --host 127.0.0.1 --port 8000 --reload
 ```
+
+环境固定在仓库 `python/.venv`，不依赖 `/private/tmp` 中的旧环境。脚本仅安装现有 `requirements-shopping-dev.txt` 声明的依赖及其依赖，使用 `requirements-shopping-lock.txt` 的精确版本约束，检查解释器、环境隔离、依赖冲突和关键导入；失败非零退出。已有 `.venv` 不会被删除或替换，不操作数据库/配置。可通过 `SHOPPING_PYTHON=/path/to/python3.11 ./scripts/setup_shopping_env.sh` 指定解释器；显式指定不支持的版本即使已有环境也拒绝执行。锁文件来自干净 macOS arm64 / Python 3.11.3 环境，共 54 项，不含全局包或绝对路径；Python 3.12、Linux 与 Windows 的锁文件兼容性尚未实测。首次安装需可达包源；安装完成后离线模板、测试与 hash 基线不需模型密钥。真实 embedding 可使用百炼 API 或已有本地模型，计算成本未测。
+
+从 `python/` 复验完整测试（保留 API 测试）：
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py
+```
+
+2026-10-07 持久环境先复现旧基线 **230 passed in 11.02s**，新增独立评测测试后 254 passed，随后新增百炼协议测试后 **274 passed in 20.58s、0 skipped**。新增测试只使用受控向量和临时 127.0.0.1 HTTP 服务，CI 不需 Ollama、云密钥、模型下载或外网；限制本机端口绑定的沙箱需允许该测试服务，不能用跳过测试代替。
 
 打开 <http://127.0.0.1:8000/docs> 查看接口。首次启动时自动建立本地 SQLite 数据库并导入 30 件合成商品、6 条合成 FAQ。数据库文件已被仓库的 `.gitignore` 忽略。
 
@@ -129,8 +139,8 @@ uvicorn shopping_agent.app:app --reload
 在 `python/` 目录执行：
 
 ```bash
-python -m pytest tests -q --ignore=tests/test_ab_test.py
-python -m shopping_agent.evaluation
+.venv/bin/python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py
+.venv/bin/python -m shopping_agent.evaluation
 ```
 
 旧 `test_ab_test.py` 属原项目链路，本环境缺少其 `numpy` 依赖；此命令仅排除该已知旧问题，不跳过新框架测试。评测入口保留原 38 问指标、32 条冻结的独立检索标注，以及完整合格商品集合评测。旧检索标注 SHA256 为 `ceae3893609a5ec2fec1f2340685f60732c6dbfe27caa92d464bd16d1bca3736`。每个商品题只有一个金标来源，不能从该组标签推断多商品推荐质量；其来源匹配也不能证明回答中的每句话均由资料支持。
@@ -142,6 +152,70 @@ python -m shopping_agent.evaluation
 第二组留出集在代码修复后独立编写并逐题复核，含 24 题、12 条多商品题、6 条无答案题及 2 条合格商品数大于请求上限的题；标签 SHA256 为 `fa755c4bbf8d739809a417a4c27291ed7c6217292d2ae6d607826ad8b40ea5f9`。**首次评分**见 `reports/multi_product_final_holdout_first_run.json`：三种请求模式的商品微观精确率均为 27/34（0.7941），容量归一召回率 27/30（0.9），完整集合命中 18/24，多商品题命中 8/12，无答案拒答 4/6，错误数 0。实际执行的商品检索模式与请求模式无不一致；5 题没有报告商品检索模式。逐例发现 IPX 等级、插口、折叠屏、佩戴方式同义词漏判，以及“不高于”“不能低于”数值方向错误；还发现数值条件商品可能只附评价来源。修复后同一组题达到 24/24、无答案 6/6，见 `reports/multi_product_final_holdout_tuned.json`。**该复测已使用这组题调参，不能代替首次独立成绩。**报告记录标签、目录和代码快照哈希；题集仍只覆盖同一份合成商品目录。
 
 上一轮新框架测试基线为 152 passed；原 38 问为 0 errors，类目、库存、来源附带、预期有无及硬约束指标均为 1.0。实际简历可写清楚离线评测和误差修复过程，不能宣称调优集 100% 是未见问题准确率、真实用户效果或生产级 RAG 事实正确率。
+
+### 独立 embedding 检索对比
+
+新增 `shopping_agent.embedding_benchmark` 直接复用现有检索实现，以全新内存 SQLite 导入默认 30 件合成商品、6 条 FAQ、96 个来源。四路为 BM25、256 维非语义 hash-surrogate 向量、真实 API 向量和混合检索；用户已将本地模型要求调整为真实服务，并选择百炼。所有问题搜索同一个商品+FAQ 语料；不以冻结标签的 `topic` 选库或过滤，运行阶段只接收 `case_id` 与原问句，其他金标仅用于完整性预检及事后评分。这与旧 `evaluation` 按主题选择语料的口径不同，不直接声称新旧提升。
+
+#### 百炼：当前可用方案
+
+模型选择 `text-embedding-v4` / 1024 维，支持中文与 OpenAI 兼容格式。按[百炼官方接口](https://help.aliyun.com/zh/model-studio/embedding-interfaces-compatible-with-openai)每请求最多 10 条，适配器自动分批，按返回 `index` 校验并重排，拒绝重复/缺失 index、模型不一致、非法/零向量或维数变化；复用当前检索器，不修改排序。北京旧域名仍受官方支持，可显式换成对应业务空间 HTTPS 域名。密钥、地域和业务空间需匹配；北京默认端点不代表所有地域的 Key 都可用。
+
+从 `python/` 执行。密钥只从本机 `SHOPPING_EMBEDDING_API_KEY` 或 `DASHSCOPE_API_KEY` 环境读取（前者优先），不经参数、报告或日志传播：
+
+```bash
+export SHOPPING_BENCHMARK_OUTPUT="$(mktemp -d)/embedding.json"
+.venv/bin/python -m shopping_agent.embedding_benchmark \
+  --provider bailian --allow-remote --model text-embedding-v4 \
+  --base-url https://dashscope.aliyuncs.com/compatible-mode/v1 \
+  --output "$SHOPPING_BENCHMARK_OUTPUT"
+```
+
+`--provider bailian` 下模型/端点默认分别为上述 v4/北京；可用 `SHOPPING_EMBEDDING_MODEL`、`SHOPPING_EMBEDDING_BASE_URL` 配置，显式参数优先。未给 `--allow-remote`、缺密钥或 URL 非官方 HTTPS 时不访问外网，保留 BM25/hash 结果并将真实两路 blocked、成绩 null、退出 1。只发送合成来源文本和合成问句，不发送标签、原文 JSONL 中的非文本字段或用户资料。禁 HTTP 重定向、自动重试及环境代理，401/429/500 等均直接失败，响应正文不写报告。没有新的依赖；复用已安装 httpx。FastAPI 业务与旧评测器仍按既有离线默认运行，远程适配仅用于本独立 CLI。
+
+每路 `embedding_calls` 记录实际 HTTP 尝试/有效响应次数及发送文本数；附加 `adapter_*` 区分逻辑 embed 调用。此目录 96 条来源需 10 个 HTTP 批次，32 题再调用 32 次，故每路 **42 个 HTTP 请求、33 次逻辑调用、128 条输入文本**。报告的 `provider_metadata` 含响应模型、request id、API usage。云服务不公开权重摘要/模型版本时填 null，不把 API 模型别名当权重证明。实际账单未知；仅按[北京同步公开价](https://help.aliyun.com/zh/model-studio/text-embedding-v4) **¥0.5/百万输入 Token** 估算，免费额度不假定可用。usage 缺失或调用不完整则估算为 null；非北京端点不套用北京价。
+
+真实首跑 `/private/tmp/shopping-bailian-20261007-first-run.json` SHA256 `abc7cfcfac7fecd7af5f70ac9434d922b986a58d7a480316b18d287919f916b1`，代码 SHA256 `d231cedffe498268df3d9a0cc634cd3f2a19ccb51ce22e4c426160fa94a1f775`；两路均返回 `text-embedding-v4`、实测 1024 维、42 个有效请求 ID。
+
+| 路径 | Recall@5 | MRR@5 精确计算 | 建索引 ms | 查询 p50/p95 ms | 请求/实际模式 | 降级 |
+|---|---|---|---|---|---|---|
+| BM25 | 29/29 | (519/20)/29 = 0.894828 | 7.028 | 0.16 / 0.22 | bm25 / bm25×32 | 0 |
+| hash 向量 | 28/29 | (368/15)/29 = 0.845977 | 6.377 | 0.75 / 0.82 | vector / vector×32 | 0 |
+| 百炼向量 | 29/29 | (275/12)/29 = 0.790230 | 4033.140 | 297.96 / 425.39 | vector / vector×32 | 0 |
+| 百炼混合 | 29/29 | 27/29 = 0.931034 | 4033.630 | 305.29 / 802.37 | hybrid / hybrid×32 | 0 |
+
+真实向量 MRR 低于 BM25，未按标签改排序或调参数。每路 API 返回 4,265 Token，两路合计 8,530 Token、公开价估算 **¥0.004265**，实际账单 null；新适配器每次逻辑调用建立 HTTP 客户端，网络/TLS/供应商抖动都计入时延，不能视作生产性能。29 条有答案计入指标；3 条无答案仅报告返回情况，返回来源不是事实支持或安全拒答。协议测试的受控向量只验证接口，未冒充真实成绩。首次报告与历史报告均不覆盖；复跑须用新输出路径。
+
+故障命令使用 `--provider bailian --base-url http://127.0.0.1:1/v1 --timeout 1` 和测试专用密钥、全新 `/private/tmp/shopping-bailian-20261007-unreachable.json`，退出 1、两路 failed、指标 null。随后恢复上述百炼真实命令及全新 `/private/tmp/shopping-bailian-20261007-restored.json`，退出 0、四路指标与首跑一致，真实两路零降级。重复已有首跑路径退出 1、`Benchmark refused overwrite`，哈希未变。两次完整真实调用共 168 个 HTTP 请求、API 报告 17,060 Token，公开价估算 ¥0.00853，实际账单未知。新增 20 项百炼协议测试与原 24 项合计 `44 passed`，完整测试 `274 passed、0 skipped`；四套旧质量门禁通过。真实 API 密钥不用于受控服务器测试，CI 不需云凭据。
+
+#### 原本地 Ollama 方案与历史阻塞
+
+从 `python/` 执行，先确认本地已有支持 embedding 的模型和 `/api/embed` 服务。只接受显式本机 HTTP 端点（127.0.0.1 或 localhost，含端口），核对 `/api/tags`、`/api/show` 中已有权重与摘要，不拉取模型：
+
+```bash
+export SHOPPING_EMBEDDING_MODEL="你的已有本地embedding模型名"
+export SHOPPING_BENCHMARK_OUTPUT="$(mktemp -d)/embedding.json"
+.venv/bin/python -m shopping_agent.embedding_benchmark \
+  --model "$SHOPPING_EMBEDDING_MODEL" --base-url http://127.0.0.1:11434 \
+  --output "$SHOPPING_BENCHMARK_OUTPUT"
+```
+
+报告包含商品/FAQ/标签与代码 SHA256、时间、Python/平台、provider/模型摘要、服务版本、实测维数、每路建索引与查询 p50/p95、embedding 尝试/成功次数和输入文本数、请求/实际模式、降级数、每题 Top5 来源 ID/得分。各策略独立建索引，不复制或调整现有排序算法。当前检索器即便 BM25 也预建一个未使用的 hash 向量索引，建索引耗时及 1 次 hash 调用如实计入；BM25 查询调用 embedding 为 0。时延包括串行查询 embedding，不包括建索引；此历史本地尝试无付费 API 或生成调用，硬件计算成本未知（null），时间不能推广到生产负载。
+
+32 条代理编写的冻结合成题含 **29 条有答案、3 条无答案**。Recall@5 定义为前 5 个不同来源至少命中一个金标的有答案题数 /29；MRR@5 为首个金标的倒数排名之和 /29，记录精确分数形式的分子。它们不是逐主张事实支持率。3 条无答案单独列返回数及来源；检索器返回 Top5 不构成拒答或推荐安全性证明。模型不可达、向量非有限/零范数/维数变化、索引失败或任何查询降级，真实策略均 failed/blocked、缺失指标 null，CLI 非零退出。途中失败只保留已完成诊断。输出以排他方式创建，已有路径在任何模型调用前拒绝覆盖。
+
+2026-10-07 实际命令使用 `SHOPPING_EMBEDDING_MODEL=qwen2:0.5b`、`SHOPPING_BENCHMARK_OUTPUT=/private/tmp/shopping-embedding-20261007-real-cli-2.json`；Ollama 0.34.4 本地模型摘要 `6f48b936a09f7743c7dd30e72fdb14cba296bc5861902e4d0c387e8fb5050b39`，capabilities 只有 completion。命令退出 1：`Embedding benchmark FAILED`，真实两路均 `Embedding endpoint returned HTTP 501`，各尝试 1 次索引 embedding、成功 0 次；实测维数、查询耗时和分数为 null。元数据中的 embedding_length 896 不能当作实测维数。报告 SHA256 `3282eabd1f1e6f659606b7b3f4dff56b71c40a16b0d0fbc7791444195ddbdfd9`。
+
+| 路径 | 状态 | Recall@5 | MRR@5 精确计算 | 建索引 ms | 查询 p50/p95 ms | embedding 尝试/成功 |
+|---|---|---|---|---|---|---|
+| BM25 | 离线成功 | 29/29 | (519/20)/29 = 0.894828 | 6.414 | 0.16 / 0.21 | 1/1（hash 预建） |
+| hash 向量 | 离线成功 | 28/29 | (368/15)/29 = 0.845977 | 6.079 | 0.73 / 0.78 | 33/33 |
+| Ollama 向量 | HTTP 501 失败 | null | null | null | null | 1/0 |
+| Ollama 混合 | HTTP 501 失败 | null | null | null | null | 1/0 |
+
+离线两路实际模式分别为 bm25×32、vector×32，降级 0；三条无答案每路都返回 5 个来源，仅为检索统计。正式报告来自上述真实 Ollama 失败调用；测试 HTTP 服务的受控向量没有语义含义，不用于此表真实模型成绩。
+
+历史反向验证改 `--base-url http://127.0.0.1:1 --timeout 1` 后退出 1、`ConnectionRefusedError`，恢复 11434 仍返回 501；原输出拒绝覆盖、哈希不变。临时破坏计数逻辑得到 `1 failed`，恢复后 `1 passed`，当时完整测试 `254 passed`。该本地阻塞已通过用户授权改用上述百炼真实服务，不再是当前验收前置条件。现有目录/证据评测器固定使用离线默认适配器，不能靠设置模型环境变量把它们称为真实模型评测。
 
 ### 跨目录迁移评测
 
@@ -172,7 +246,7 @@ python -m shopping_agent.catalog_evaluation \
 在仓库根目录复现第三目录：
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python /private/tmp/shopping-agent-venv/bin/python -m shopping_agent.catalog_evaluation \
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python python/.venv/bin/python -m shopping_agent.catalog_evaluation \
   --catalog python/shopping_agent/data/constraint_v1_catalog.jsonl \
   --labels python/shopping_agent/data/constraint_v1_labels.jsonl
 ```
@@ -187,12 +261,14 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python /private/tmp/shopping-agent-venv/bin
 report_dir="$(mktemp -d)"
 export SHOPPING_LLM_API_KEY= SHOPPING_LLM_MODEL= SHOPPING_DATABASE_URL=sqlite://
 export PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python
-python -m shopping_agent.evaluation > "$report_dir/original.json"
-python -m shopping_agent.catalog_evaluation --catalog python/shopping_agent/data/transfer_products.jsonl --labels python/shopping_agent/data/transfer_product_labels.jsonl --output "$report_dir/transfer.json"
-python -m shopping_agent.catalog_evaluation --catalog python/shopping_agent/data/constraint_v1_catalog.jsonl --labels python/shopping_agent/data/constraint_v1_labels.jsonl --output "$report_dir/constraint.json"
-python -m shopping_agent.grounding_evaluation --catalog python/shopping_agent/data/grounding_v1_catalog.jsonl --labels python/shopping_agent/data/grounding_v1_labels.jsonl --output "$report_dir/grounding.json"
-python -m shopping_agent.quality_gate --original "$report_dir/original.json" --transfer "$report_dir/transfer.json" --constraint "$report_dir/constraint.json" --grounding "$report_dir/grounding.json"
+python/.venv/bin/python -m shopping_agent.evaluation > "$report_dir/original.json"
+python/.venv/bin/python -m shopping_agent.catalog_evaluation --catalog python/shopping_agent/data/transfer_products.jsonl --labels python/shopping_agent/data/transfer_product_labels.jsonl --output "$report_dir/transfer.json"
+python/.venv/bin/python -m shopping_agent.catalog_evaluation --catalog python/shopping_agent/data/constraint_v1_catalog.jsonl --labels python/shopping_agent/data/constraint_v1_labels.jsonl --output "$report_dir/constraint.json"
+python/.venv/bin/python -m shopping_agent.grounding_evaluation --catalog python/shopping_agent/data/grounding_v1_catalog.jsonl --labels python/shopping_agent/data/grounding_v1_labels.jsonl --output "$report_dir/grounding.json"
+python/.venv/bin/python -m shopping_agent.quality_gate --original "$report_dir/original.json" --transfer "$report_dir/transfer.json" --constraint "$report_dir/constraint.json" --grounding "$report_dir/grounding.json"
 ```
+
+2026-10-07 上述四份临时报告在持久环境中通过：`quality gate PASS: original 38/0; transfer 24/24; constraint 18/18; all modes; grounding 36/36 with current citations`。第四套三模式各 99/100、41/130、183/183、9/9、错误 0；仍是冻结合成题同题回归。
 
 仓库内 `reports/*first_run.json` 是当时旧代码首跑的历史证据，不能声称用当前代码重新生成过当年的首跑分数。本机只验证了 Python 3.11；GitHub Actions 和 Python 3.12 尚未实际运行，不能称它们已通过。
 

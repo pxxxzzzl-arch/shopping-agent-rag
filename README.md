@@ -9,11 +9,12 @@
 在**当前仓库**根目录运行；Python 3.11 或 3.12，默认不需要模型密钥：
 
 ```bash
+./scripts/setup_shopping_env.sh
 cd python
-python3.11 -m venv .venv
-.venv/bin/python -m pip install -r requirements-shopping-dev.txt
 .venv/bin/python -m uvicorn shopping_agent.app:app --host 127.0.0.1 --port 8000
 ```
+
+脚本在 `python/.venv` 建立隔离环境，按现有开发依赖和精确版本锁安装；可用 `SHOPPING_PYTHON=/path/to/python3.11` 指定解释器。锁文件实测平台为 macOS arm64 / Python 3.11.3；其他平台仍需验证。重复执行保留已有数据库和配置，错误会非零退出。完整测试从 `python/` 执行 `.venv/bin/python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py`。
 
 另开终端验证（服务启动后）：
 
@@ -25,6 +26,22 @@ curl -X POST http://127.0.0.1:8000/api/v1/shop/recommend \
 ```
 
 接口说明与 RAG、Agent、A/B 的离线复现见 [Python 导购文档](python/SHOPPING_AGENT.md)。本机默认导入 30 件**合成**商品、6 条**合成** FAQ；价格与库存也仅是本地演示快照。第四套独立合成题的首跑证据和当前同题回归在文档中分开列示。容器配置为 `docker-compose.shopping.yml`，仅绑定本机地址；未经鉴权和真实数据授权，不用于公开服务。
+
+### 真实 embedding 检索评测入口
+
+本轮已按用户选择接入**阿里云百炼 `text-embedding-v4`（1024 维）**，无需本地 embedding 模型。从 `python/` 目录执行；先在本机环境配置 `DASHSCOPE_API_KEY` 或 `SHOPPING_EMBEDDING_API_KEY`，不要把密钥写入代码。`--allow-remote` 明确允许发送仓库合成文本，输出必须为新路径：
+
+```bash
+export SHOPPING_BENCHMARK_OUTPUT="$(mktemp -d)/embedding.json"
+.venv/bin/python -m shopping_agent.embedding_benchmark \
+  --provider bailian --allow-remote --model text-embedding-v4 \
+  --base-url https://dashscope.aliyuncs.com/compatible-mode/v1 \
+  --output "$SHOPPING_BENCHMARK_OUTPUT"
+```
+
+比较 BM25、hash-surrogate 向量、百炼真实向量和混合检索，记录 32 条冻结合成题的逐题来源、Recall@5/MRR@5、实际 HTTP 调用数、Token 用量、耗时及模式。标签只用于评分；3 条无答案的检索返回不能解释成安全拒答。密钥不写入报告；模型不可达、向量异常或任何降级均非零退出，缺失成绩为 null。原本机 Ollama 入口保留，服务默认无密钥离线回退；远程接入位于独立评测 CLI，旧业务代码与 CI 未改。
+
+2026-10-07 百炼真实首跑：BM25/hash 向量/百炼向量/百炼混合 Recall@5 分别 **29/29、28/29、29/29、29/29**，MRR@5 分别 **0.894828、0.845977、0.790230、0.931034**。真实两路各 32 题、零降级，每路 42 次 HTTP 请求、4,265 个 API 报告 Token；合计公开价估算约 **¥0.004265**，实际账单未知。这是合成题检索比较，真实向量 MRR 低于 BM25 的结果保留，不能推广为线上提升。完整测试 **274 passed、0 skipped**，四套旧门禁通过。模型/接口和计费来源见 [百炼官方文档](https://help.aliyun.com/zh/model-studio/embedding-interfaces-compatible-with-openai)，详细复现见 [评测说明](python/SHOPPING_AGENT.md#独立-embedding-检索对比)与 [进度](PROGRESS.md)。
 
 ## 上游四 Agent 教学入口
 
