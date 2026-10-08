@@ -1,0 +1,411 @@
+{
+  "created_at": "2026-10-08T01:00:08.517Z",
+  "kind": "actual_browser_recording",
+  "provider": "hash",
+  "semantic_embedding": false,
+  "synthetic_data_only": true,
+  "new_cloud_calls_during_recording": 0,
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "html_sha256": "536927cfc2d6097c095b0892ff5b6b06439920eec60ad24d66dca9ffe7bfca2a",
+  "video_sha256": "0a8417c6a2e20111b7c5f593ec1834ad755f91abb4b919db374d3361443e3c5b",
+  "scenarios": [
+    {
+      "case": "product",
+      "expected_route": "product",
+      "response": {
+        "request_id": "d67a45bf-3947-4941-bafb-f0df2c377aa6",
+        "user_id": "synthetic-demo-viewer",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:1",
+                "source_type": "review",
+                "excerpt": "演示评价：公交发动机低频噪声减弱明显。"
+              }
+            ],
+            "condition_judgments": [
+              {
+                "field": "price",
+                "operator": "<=",
+                "expected": 500,
+                "unit": "元",
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              },
+              {
+                "field": "category",
+                "operator": "=",
+                "expected": "耳机",
+                "unit": null,
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              }
+            ]
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 28.06,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:hybrid",
+          "rank",
+          "stock_verify",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "product": "hybrid"
+        },
+        "conversation_id": "presentation-1791421159353",
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "hash",
+        "configured_embedding_model": null,
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "hash",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      }
+    },
+    {
+      "case": "followup",
+      "expected_route": "product",
+      "response": {
+        "request_id": "e3cdf025-bdba-4544-af73-d85e5c75ac2e",
+        "user_id": "synthetic-demo-viewer",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:1",
+                "source_type": "review",
+                "excerpt": "演示评价：公交发动机低频噪声减弱明显。"
+              }
+            ],
+            "condition_judgments": []
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 53.92,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:hybrid",
+          "rank",
+          "stock_verify",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "product": "hybrid"
+        },
+        "conversation_id": "presentation-1791421159353",
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "hash",
+        "configured_embedding_model": null,
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "hash",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      }
+    },
+    {
+      "case": "faq",
+      "expected_route": "faq",
+      "response": {
+        "request_id": "332095cc-06a3-4744-a17c-3f1e703c522f",
+        "user_id": "synthetic-demo-viewer",
+        "answer": "合成演示 FAQ：不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。 [DEMO-FAQ-01:answer]",
+        "recommendations": [],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [],
+        "total_latency_ms": 5.19,
+        "route": "faq",
+        "tool_trace": [
+          "planner",
+          "faq_retrieval:hybrid",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "faq": "hybrid"
+        },
+        "conversation_id": "presentation-1791421159353",
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "服务政策问答",
+        "knowledge_evidence": [
+          {
+            "source_id": "DEMO-FAQ-01:answer",
+            "source_type": "answer",
+            "excerpt": "不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。"
+          }
+        ],
+        "configured_embedding_provider": "hash",
+        "configured_embedding_model": null,
+        "retrieval_diagnostics": {
+          "faq": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "hash",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      }
+    },
+    {
+      "case": "mixed",
+      "expected_route": "mixed",
+      "response": {
+        "request_id": "3fd186c0-3615-49aa-be29-9f67f2023f7a",
+        "user_id": "synthetic-demo-viewer",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。 合成演示 FAQ：不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。 [DEMO-FAQ-01:answer]",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:1",
+                "source_type": "review",
+                "excerpt": "演示评价：公交发动机低频噪声减弱明显。"
+              }
+            ],
+            "condition_judgments": [
+              {
+                "field": "price",
+                "operator": "<=",
+                "expected": 500,
+                "unit": "元",
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              },
+              {
+                "field": "category",
+                "operator": "=",
+                "expected": "耳机",
+                "unit": null,
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              }
+            ]
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 18.3,
+        "route": "mixed",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:hybrid",
+          "rank",
+          "stock_verify",
+          "faq_retrieval:hybrid",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "product": "hybrid",
+          "faq": "hybrid"
+        },
+        "conversation_id": "presentation-1791421159353",
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "同时包含商品与服务问题",
+        "knowledge_evidence": [
+          {
+            "source_id": "DEMO-FAQ-01:answer",
+            "source_type": "answer",
+            "excerpt": "不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。"
+          }
+        ],
+        "configured_embedding_provider": "hash",
+        "configured_embedding_model": null,
+        "retrieval_diagnostics": {
+          "faq": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "hash",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          },
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "hash",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      }
+    },
+    {
+      "case": "noanswer",
+      "expected_route": "product",
+      "response": {
+        "request_id": "5c5cac68-1d93-455d-86c2-b0035166d3ce",
+        "user_id": "synthetic-demo-viewer",
+        "answer": "暂时没有满足条件且有库存的商品，或缺少证据确认所需能力；请核对需求与来源。",
+        "recommendations": [],
+        "retrieval_used": false,
+        "llm_used": false,
+        "warnings": [
+          "商品筛选结果为空。"
+        ],
+        "total_latency_ms": 11.32,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": null,
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {},
+        "conversation_id": "presentation-1791421159353",
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "hash",
+        "configured_embedding_model": null,
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": null,
+            "actual_provider": null,
+            "embedding_used": false,
+            "status": "not_used",
+            "fallback_reason": null,
+            "index_state": "unknown"
+          }
+        }
+      }
+    }
+  ],
+  "browser_errors": []
+}

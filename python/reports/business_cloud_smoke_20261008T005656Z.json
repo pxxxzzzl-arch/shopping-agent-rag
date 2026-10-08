@@ -1,0 +1,776 @@
+{
+  "schema_version": 1,
+  "kind": "live_cloud_http",
+  "created_at": "2026-10-08T00:56:57.084421+00:00",
+  "status": "passed",
+  "synthetic_data_only": true,
+  "provider": "bailian",
+  "max_http_calls": 24,
+  "code_and_input_sha256": {
+    "python/shopping_agent/__init__.py": "0769d66b8d4dc89255458d8feb77792daa72a1e7634aace87729147de1c3b8ee",
+    "python/shopping_agent/agent_roles.py": "780e6f13e74da77e3195362811a9d275d4d0d9e987dd9f36b21df12e38dd8a21",
+    "python/shopping_agent/answer.py": "8a9d563032eae082f37766a2a841d57eab17a01edc2942367900b3f4bdc961ff",
+    "python/shopping_agent/app.py": "5fc95d480209b6b066d6c9151d5c51170818190ae9456abbf073bd11a0986f3d",
+    "python/shopping_agent/business_smoke.py": "ecf5764224e9b4882c5c11cd40de1558ca2af34eac4451f1032925609f93b39d",
+    "python/shopping_agent/catalog_cli.py": "230b83431f8d7404c765b104f4e80000dfd292d9bab750f381a7967f00e3e5a0",
+    "python/shopping_agent/catalog_evaluation.py": "5e436ca33bb1f88dc738ded6a6e976b07816990f2e456f80a68cfd4f0ae2ad6c",
+    "python/shopping_agent/config.py": "ecee4328257296f7060eb06ca170ad94a6b1ccb6f3beb55172fbcbf8f97f0458",
+    "python/shopping_agent/constraints.py": "59f498986ff36eff0765981577d1b134fff4950af9ec470f9fa3ed31d24d45fe",
+    "python/shopping_agent/conversation.py": "464743e49bce94982119cc51479182b0265671e22e95a282f4884e66e7f281f8",
+    "python/shopping_agent/demo.py": "bd252559f6121bc589d776000bb0c9725efbb50fbebcd559bd932e4fae6cfed7",
+    "python/shopping_agent/embedding_benchmark.py": "d321621eac2ae131e8d4cd373303da76f6934643cb808f98b2651cb71664a91e",
+    "python/shopping_agent/embeddings.py": "699bf3e97993403291170d10c624264d07494cd405d2bfb939b45c4596832011",
+    "python/shopping_agent/evaluation.py": "a7c9a25858f602083ff907ec57d5e4ec38e7a50735eee315a9ae174d059d6e6a",
+    "python/shopping_agent/evaluation_multi.py": "f99246e61b54583788df61f4e120f8dc3880a67e1797187893d526bf8961523e",
+    "python/shopping_agent/experiments.py": "3a8aa6c0a1c8af0bf14f92454ec7bc55cca73d6d983e47932632282063c38f19",
+    "python/shopping_agent/grounding_evaluation.py": "6c46ebf25f78c466347daa996de0c551193a731caed816117eac4f08df7493df",
+    "python/shopping_agent/product_requirements.py": "283bd859a3f893e2a550f900a0ddaa0a3e69ae0d953b686a406ce8b2b5e4dc56",
+    "python/shopping_agent/quality_gate.py": "d46d2db7853bedaeb9e2c440fd696c66307d8e4d7806b7c62dc1e17735a51c61",
+    "python/shopping_agent/retrieval.py": "23e005f1f3397c7553b1178033dfbd9983b9bb5e8ffc2e0816eab0bc652990ea",
+    "python/shopping_agent/schemas.py": "daab9317a6412cbfcf6e8021b9b671a3c8b2af6c89be14b580ab5ec18a32e68e",
+    "python/shopping_agent/seed.py": "e1f34906ab76e9e1e9b8d6ae20a2975f4fa9850d387c8cb355a2b77d73d8d648",
+    "python/shopping_agent/storage.py": "a7abb73784c2f2fa73a134e431bc1ee459ab49861832027493cd0056b538d042",
+    "python/shopping_agent/workflow.py": "2598160b685474f9e201c4f1d7acf38443a79d4d0433be50b3554bd4d75ab6ed",
+    "python/shopping_agent/data/demo_faq.jsonl": "7399ebf700445b82ba9993b34eb5bec5a43da3fd5b8f184551ef9375c903e4e0",
+    "python/shopping_agent/data/demo_products.jsonl": "cccfd0b3a65266f0229fb7a91c092130ec8f8e0a6c787a0a876f5b84f5dfd96c"
+  },
+  "cases": [
+    {
+      "case_id": "bm25_zero_cloud",
+      "query": "推荐降噪耳机，预算500元",
+      "requested_mode": "bm25",
+      "expected_route": "product",
+      "expected_no_recommendations": false,
+      "latency_ms": 20.05,
+      "embedding_http_delta": 0,
+      "response": {
+        "request_id": "fbb3c5e1-709c-4afc-b850-2628c8d52980",
+        "user_id": "synthetic-release-smoke",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299.0,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:1",
+                "source_type": "review",
+                "excerpt": "演示评价：公交发动机低频噪声减弱明显。"
+              }
+            ],
+            "condition_judgments": [
+              {
+                "field": "price",
+                "operator": "<=",
+                "expected": 500.0,
+                "unit": "元",
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              },
+              {
+                "field": "category",
+                "operator": "=",
+                "expected": "耳机",
+                "unit": null,
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              }
+            ]
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 19.03,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:bm25",
+          "rank",
+          "stock_verify",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "bm25",
+        "requested_retrieval_mode": "bm25",
+        "effective_retrieval_modes": {
+          "product": "bm25"
+        },
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "bm25",
+            "actual_mode": "bm25",
+            "actual_provider": "bm25",
+            "embedding_used": false,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "lazy"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "product_vector",
+      "query": "推荐降噪耳机，预算500元",
+      "requested_mode": "vector",
+      "expected_route": "product",
+      "expected_no_recommendations": false,
+      "latency_ms": 4025.22,
+      "embedding_http_delta": 10,
+      "response": {
+        "request_id": "c90fbde2-1a37-47b7-9208-72745b9a7b87",
+        "user_id": "synthetic-release-smoke",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299.0,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:2",
+                "source_type": "review",
+                "excerpt": "演示评价：人声仍能听到，通透模式切换方便。"
+              }
+            ],
+            "condition_judgments": [
+              {
+                "field": "price",
+                "operator": "<=",
+                "expected": 500.0,
+                "unit": "元",
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              },
+              {
+                "field": "category",
+                "operator": "=",
+                "expected": "耳机",
+                "unit": null,
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              }
+            ]
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 4023.78,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:vector",
+          "rank",
+          "stock_verify",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "vector",
+        "requested_retrieval_mode": "vector",
+        "effective_retrieval_modes": {
+          "product": "vector"
+        },
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "vector",
+            "actual_mode": "vector",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "faq_hybrid",
+      "query": "演示商品是真实在售商品吗？",
+      "requested_mode": "hybrid",
+      "expected_route": "faq",
+      "expected_no_recommendations": false,
+      "latency_ms": 678.359,
+      "embedding_http_delta": 2,
+      "response": {
+        "request_id": "fe94e4cc-4fda-428f-94fc-505f6bac0615",
+        "user_id": "synthetic-release-smoke",
+        "answer": "合成演示 FAQ：不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。 [DEMO-FAQ-01:answer]",
+        "recommendations": [],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [],
+        "total_latency_ms": 676.51,
+        "route": "faq",
+        "tool_trace": [
+          "planner",
+          "faq_retrieval:hybrid",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "faq": "hybrid"
+        },
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "服务政策问答",
+        "knowledge_evidence": [
+          {
+            "source_id": "DEMO-FAQ-01:answer",
+            "source_type": "answer",
+            "excerpt": "不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。"
+          }
+        ],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "faq": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "mixed_hybrid",
+      "query": "推荐降噪耳机，预算500元，并说明演示商品是真实在售商品吗？",
+      "requested_mode": "hybrid",
+      "expected_route": "mixed",
+      "expected_no_recommendations": false,
+      "latency_ms": 342.097,
+      "embedding_http_delta": 2,
+      "response": {
+        "request_id": "0bbf32b0-76d4-4e1e-ab74-779a0d03e129",
+        "user_id": "synthetic-release-smoke",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。 合成演示 FAQ：不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。 [DEMO-FAQ-01:answer]",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299.0,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:1",
+                "source_type": "review",
+                "excerpt": "演示评价：公交发动机低频噪声减弱明显。"
+              }
+            ],
+            "condition_judgments": [
+              {
+                "field": "price",
+                "operator": "<=",
+                "expected": 500.0,
+                "unit": "元",
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              },
+              {
+                "field": "category",
+                "operator": "=",
+                "expected": "耳机",
+                "unit": null,
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              }
+            ]
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 340.49,
+        "route": "mixed",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:hybrid",
+          "rank",
+          "stock_verify",
+          "faq_retrieval:hybrid",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "product": "hybrid",
+          "faq": "hybrid"
+        },
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "同时包含商品与服务问题",
+        "knowledge_evidence": [
+          {
+            "source_id": "DEMO-FAQ-01:answer",
+            "source_type": "answer",
+            "excerpt": "不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。"
+          }
+        ],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          },
+          "faq": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "mixed_reuse",
+      "query": "推荐降噪耳机，预算500元，并说明演示商品是真实在售商品吗？",
+      "requested_mode": "hybrid",
+      "expected_route": "mixed",
+      "expected_no_recommendations": false,
+      "latency_ms": 447.571,
+      "embedding_http_delta": 2,
+      "response": {
+        "request_id": "dfa53674-eb63-4129-b83f-de8162561510",
+        "user_id": "synthetic-release-smoke",
+        "answer": "找到以下当前有货的商品。云听 Commuter 降噪耳机（¥299）：相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]。 合成演示 FAQ：不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。 [DEMO-FAQ-01:answer]",
+        "recommendations": [
+          {
+            "product_id": "DEMO-H02",
+            "name": "云听 Commuter 降噪耳机",
+            "category": "耳机",
+            "price": 299.0,
+            "stock": 28,
+            "reason": "相关资料提到：合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。 [DEMO-H02:description]",
+            "evidence": [
+              {
+                "source_id": "DEMO-H02:description",
+                "source_type": "description",
+                "excerpt": "合成演示商品。入耳式主动降噪耳机，标称最高32 dB降噪，单次续航约7小时，搭配充电盒约28小时，支持通透模式与双设备切换。定位通勤和办公室。"
+              },
+              {
+                "source_id": "DEMO-H02:review:1",
+                "source_type": "review",
+                "excerpt": "演示评价：公交发动机低频噪声减弱明显。"
+              }
+            ],
+            "condition_judgments": [
+              {
+                "field": "price",
+                "operator": "<=",
+                "expected": 500.0,
+                "unit": "元",
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              },
+              {
+                "field": "category",
+                "operator": "=",
+                "expected": "耳机",
+                "unit": null,
+                "status": "supported",
+                "evidence": [
+                  {
+                    "source_id": "catalog:DEMO-H02:sha256:7f441b891ff619dc0c38",
+                    "source_type": "catalog_snapshot",
+                    "excerpt": "当前商品库记录：类别=耳机；价格=299元；库存=28件。"
+                  }
+                ],
+                "conflict": false,
+                "explanation": "按当前商品库记录核验。"
+              }
+            ]
+          }
+        ],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [
+          "满足条件且当前有货的商品少于请求数量。"
+        ],
+        "total_latency_ms": 446.3,
+        "route": "mixed",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "product_retrieval:hybrid",
+          "rank",
+          "stock_verify",
+          "faq_retrieval:hybrid",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "hybrid",
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {
+          "product": "hybrid",
+          "faq": "hybrid"
+        },
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "同时包含商品与服务问题",
+        "knowledge_evidence": [
+          {
+            "source_id": "DEMO-FAQ-01:answer",
+            "source_type": "answer",
+            "excerpt": "不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。"
+          }
+        ],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          },
+          "faq": {
+            "requested_mode": "hybrid",
+            "actual_mode": "hybrid",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "faq_vector",
+      "query": "演示商品是真实在售商品吗？",
+      "requested_mode": "vector",
+      "expected_route": "faq",
+      "expected_no_recommendations": false,
+      "latency_ms": 333.889,
+      "embedding_http_delta": 1,
+      "response": {
+        "request_id": "ab7fbb7a-c78d-4eeb-b2f0-91cafd187487",
+        "user_id": "synthetic-release-smoke",
+        "answer": "合成演示 FAQ：不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。 [DEMO-FAQ-01:answer]",
+        "recommendations": [],
+        "retrieval_used": true,
+        "llm_used": false,
+        "warnings": [],
+        "total_latency_ms": 332.53,
+        "route": "faq",
+        "tool_trace": [
+          "planner",
+          "faq_retrieval:vector",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": "vector",
+        "requested_retrieval_mode": "vector",
+        "effective_retrieval_modes": {
+          "faq": "vector"
+        },
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "服务政策问答",
+        "knowledge_evidence": [
+          {
+            "source_id": "DEMO-FAQ-01:answer",
+            "source_type": "answer",
+            "excerpt": "不是。这里的商品、评论和库存均为合成演示数据，不能用于真实交易。"
+          }
+        ],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "faq": {
+            "requested_mode": "vector",
+            "actual_mode": "vector",
+            "actual_provider": "bailian",
+            "embedding_used": true,
+            "status": "success",
+            "fallback_reason": null,
+            "index_state": "ready"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "unsupported_capability",
+      "query": "推荐会飞的手机",
+      "requested_mode": "hybrid",
+      "expected_route": "product",
+      "expected_no_recommendations": true,
+      "latency_ms": 18.855,
+      "embedding_http_delta": 0,
+      "response": {
+        "request_id": "894ebb29-4c0f-4f2e-bb00-304b41504788",
+        "user_id": "synthetic-release-smoke",
+        "answer": "暂时没有满足条件且有库存的商品，或缺少证据确认所需能力；请核对需求与来源。",
+        "recommendations": [],
+        "retrieval_used": false,
+        "llm_used": false,
+        "warnings": [
+          "商品筛选结果为空。"
+        ],
+        "total_latency_ms": 16.22,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": null,
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {},
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": null,
+            "actual_provider": null,
+            "embedding_used": false,
+            "status": "not_used",
+            "fallback_reason": null,
+            "index_state": "unknown"
+          }
+        }
+      },
+      "status": "passed"
+    },
+    {
+      "case_id": "empty_budget",
+      "query": "推荐耳机，预算1元",
+      "requested_mode": "hybrid",
+      "expected_route": "product",
+      "expected_no_recommendations": true,
+      "latency_ms": 10.251,
+      "embedding_http_delta": 0,
+      "response": {
+        "request_id": "8584f72c-bc8f-4f36-b35c-831a7279ccb1",
+        "user_id": "synthetic-release-smoke",
+        "answer": "暂时没有满足条件且有库存的商品，或缺少证据确认所需能力；请核对需求与来源。",
+        "recommendations": [],
+        "retrieval_used": false,
+        "llm_used": false,
+        "warnings": [
+          "商品筛选结果为空。"
+        ],
+        "total_latency_ms": 8.49,
+        "route": "product",
+        "tool_trace": [
+          "planner",
+          "profile",
+          "catalog",
+          "source_verify",
+          "compose"
+        ],
+        "retrieval_mode": null,
+        "requested_retrieval_mode": "hybrid",
+        "effective_retrieval_modes": {},
+        "conversation_id": null,
+        "experiment_id": null,
+        "variant": null,
+        "routing_reason": "商品选购",
+        "knowledge_evidence": [],
+        "configured_embedding_provider": "bailian",
+        "configured_embedding_model": "text-embedding-v4",
+        "retrieval_diagnostics": {
+          "product": {
+            "requested_mode": "hybrid",
+            "actual_mode": null,
+            "actual_provider": null,
+            "embedding_used": false,
+            "status": "not_used",
+            "fallback_reason": null,
+            "index_state": "unknown"
+          }
+        }
+      },
+      "status": "passed"
+    }
+  ],
+  "real_semantic_accuracy": null,
+  "online_business_uplift": null,
+  "actual_billed_cost": null,
+  "health": {
+    "status": "healthy",
+    "catalog_products": 30
+  },
+  "embedding_metadata": {
+    "provider": "bailian",
+    "requested_model": "text-embedding-v4",
+    "response_models": [
+      "text-embedding-v4"
+    ],
+    "model_version": null,
+    "digest": null,
+    "requested_dimensions": 1024,
+    "batch_size": 10,
+    "http_attempted_calls": 17,
+    "http_successful_calls": 17,
+    "http_input_texts": 103,
+    "request_ids": [
+      "2391b79a-6783-98eb-a3dd-f5c771e6f1ba",
+      "62af3fab-59f3-9d1e-bdd8-e89c6a226e36",
+      "cae2c1c2-a00e-9d3a-9dfc-cbdea32e458a",
+      "cfa234fc-1027-93c4-8c05-4d19c486f2e0",
+      "3777180d-2783-936c-8aac-be645ebd027c",
+      "44db0151-8935-95cf-9993-03ab08080f00",
+      "e8e9e5b8-3d4c-91cc-aa5d-fe5722ba1b31",
+      "eca4bce9-85f5-94bd-8a59-474888f7f59e",
+      "fd49df86-a5b2-9948-9dda-a37509edaa9a",
+      "cc84b185-0397-98b9-91d8-0780006454f1",
+      "2c3d7b94-a64b-94de-92cd-652a814af541",
+      "d2635ead-f00f-9e9c-b1a3-182a31ac536f",
+      "9891d7e9-cd5e-9d45-84f0-9a5fe16861ba",
+      "343f09ad-a0a6-9425-aee0-cee173d3c817",
+      "5c2eeb77-9010-9f1f-a26d-f0aa21c5916d",
+      "67c814f8-79fb-996f-9cfd-dee6f210a446",
+      "65b29282-f96b-927b-9bed-434d57e50d4d"
+    ],
+    "reported_total_tokens": 3665,
+    "estimated_list_price_cny": 0.0018325,
+    "actual_billed_cost": null,
+    "price_basis": "Beijing text-embedding-v4 synchronous list price 0.5 CNY/million tokens, checked 2026-10-07; not an invoice or free-quota claim",
+    "price_source": "https://help.aliyun.com/zh/model-studio/text-embedding-v4"
+  }
+}
