@@ -6,7 +6,7 @@
 
 | 事实面 | 状态 | 当前证据 |
 |---|---|---|
-| 业务代码 | verified-current | 原 317 项与新增 5 项测试全部通过，322 passed，0 skipped/xfail；四套冻结门禁 PASS |
+| 业务代码 | verified-current | 原 317 项、5 项发布工具与 2 项并发回归全部通过，324 passed，0 skipped/xfail；四套冻结门禁 PASS |
 | 真实主 API | changed-and-verified | [8/8 合成场景、17/17 百炼 HTTP](../python/reports/business_cloud_smoke_20261008T005656Z.json)，3,665 Token、1024 维、17 个不同请求 ID |
 | 本机用户路径 | changed-and-verified | [真实浏览器录像](demo/media/shopping-agent-demo.webm)，[五次 API 响应清单](demo/media/recording-manifest.json)，默认 hash、零新云调用 |
 | 文档与求职材料 | changed-and-verified | README、demo-guide、shopping-architecture、shopping-resume；旧文档标为历史参考 |
@@ -15,6 +15,12 @@
 | 工作区残留 | verified-current | 用户已有数据库与历史计划保留；测试临时证据保留，未删除 worktree/分支/数据库 |
 
 四套门禁输出：`quality gate PASS: original 38/0; transfer 24/24; constraint 18/18; all modes; grounding 36/36 with current citations`。它们仍是合成资料同题回归；旧首跑报告与调优复测的区别保留。
+
+## 发布期间发现的并发问题
+
+远端 Python 3.12 暴露并发商品/混合请求失败；补充诊断后可见该问题未由 5 秒工具超时触发。本机新增两个回归用例稳定复现 StaticPool 的连接共享使读会话回滚未提交事件，修复为单连接 QueuePool 后均通过。原测试断言与超时保持，CI 只增加耗时输出。最终双版本结果以 Release 所附运行链接为准。
+
+历史真实云报告对应 5df155e 的源码指纹；上述存储修复发生于云验证之后，未修改或重跑历史报告，修复后用离线测试及远端门禁验证。
 
 ## GitHub 发布凭证
 

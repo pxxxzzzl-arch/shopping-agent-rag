@@ -160,7 +160,7 @@ def assert_execution(body, mode, routes, *, fallback=None):
     assert body["configured_embedding_model"] == "text-embedding-v4"
     assert body["requested_retrieval_mode"] == mode
     actual = "bm25" if fallback else mode
-    assert body["effective_retrieval_modes"] == {route: actual for route in routes}, body
+    assert body["effective_retrieval_modes"] == {route: actual for route in routes}, json.dumps(body, ensure_ascii=False)
     for route in routes:
         diagnostic = body["retrieval_diagnostics"][route]
         assert diagnostic["requested_mode"] == mode
@@ -381,7 +381,7 @@ def test_concurrent_different_modes_keep_request_local_diagnostics(endpoint):
         for (route, mode), body in zip(tasks, bodies):
             routes = ["product", "faq"] if route == "mixed" else [route]
             assert body["requested_retrieval_mode"] == mode
-            assert body["effective_retrieval_modes"] == {key: mode for key in routes}
+            assert body["effective_retrieval_modes"] == {key: mode for key in routes}, json.dumps(body, ensure_ascii=False)
             for diagnostic in body["retrieval_diagnostics"].values():
                 assert diagnostic["requested_mode"] == diagnostic["actual_mode"] == mode
                 assert diagnostic["actual_provider"] == ("bm25" if mode == "bm25" else "bailian")

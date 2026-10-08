@@ -156,6 +156,8 @@ export SHOPPING_RETRIEVAL_MODE=bm25
 
 当前展示使用独立内存数据库：在仓库根目录运行 `./scripts/run_shopping_demo.sh --port 8000`，访问本机首页。默认离线 hash，无需模型 Key。界面直接调用真实生产 API；[49 秒浏览器录像](../docs/demo/media/shopping-agent-demo.webm)记录五次实际请求，录像期间云调用为 0；底部单列已保存的云验证结果，不混作实时百炼调用。操作手册见 [demo-guide.md](../docs/demo-guide.md)，当前架构与求职材料见 [shopping-architecture.md](../docs/shopping-architecture.md)、[shopping-resume.md](../docs/shopping-resume.md)。
 
+发布期间远端 Python 3.12 暴露并发异常；内存 SQLite 从共享 StaticPool 改为容量 1、无额外连接的 QueuePool，避免会话间交错事务，新增两个写入/读取并发回归。当前完整测试为 324 项；旧 322 项记录保留为修复前历史。真实云报告源码指纹对应 5df155e，存储修复后仅做离线及 CI 复验，未重跑付费冒烟。最终远端结果以 [Release](https://github.com/pxxxzzzl-arch/shopping-agent-rag/releases/tag/v0.1.0-demo) 为准。
+
 ## 导入获授权资料
 
 在 `python/` 目录执行：

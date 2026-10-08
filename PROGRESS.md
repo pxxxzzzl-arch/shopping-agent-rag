@@ -174,3 +174,7 @@ README/SHOPPING_AGENT.md 与 BLOCKED.md 已同步真实云结果、费用估算�
 完整离线测试 322 passed in47.18s、0 skipped/xfail；新增5项防误启用云/拒绝覆盖/缺Key失败/展示壳契约/非法预算测试。四套原门禁 PASS，输出 /private/tmp/shopping-release-gates-20261008-pkhsqc_o。
 README 已重排为当前 Python 展示入口，旧完整 README 保留到 docs/upstream-readme.md；旧教学文档加历史标签。新增现役架构、演示、求职材料、发布说明和 AGENTS.md，未写平台记忆。GitHub 已通过用户设备登录，联网核验账号 pxxxzzzl-arch；下一步完成密钥/范围/链接审计、本地提交、个人仓库 main 推送、远端 CI 和 Release 凭证。
 发布前本地审计 PASS：现役文档本地链接全部存在；当前 tracked/new 文件与184个历史blob完成密钥扫描；真实报告和录像指纹匹配；旧测试/冻结输入/quality_gate未变。pip check无冲突，演示启动脚本语法和--help通过。视频、截图、清单和用户数据库保留供复核。个人目标仓库首次只读检查404，准备新建公开仓库 shopping-agent-rag，origin指向个人仓库、原地址保留upstream；最终远端提交/CI/视频附件记录到v0.1.0-demo Release。
+
+个人发布与并发修复（2026-10-08）：用户认证完成后核验账号并新建公开仓库 pxxxzzzl-arch/shopping-agent-rag，origin 指向个人地址、原作者保留 upstream。github.com Smart HTTP 多次不可达，但 api.github.com 可用；逐项核对 Git 对象身份后经 Git Data API 导入原七次提交与完整源码/媒体，普通快进合并 c8ac3ba 保留原提交 SHA，无强制覆盖。主分支首轮 Python 3.11 通过，3.12 的并发商品/混合请求失败；8111771 仅增加测试诊断及 CI 耗时输出，复测仍在 3.12 失败。
+定位期间新增两个内存 SQLite 写/读事务回归，在旧 StaticPool 下稳定 2 failed：读会话结束把并发写入的未提交事件回滚。storage.py 改用 QueuePool(pool_size=1,max_overflow=0)，顺序签出同一内存连接；修复后新回归与原并发索引测试 3 passed，完整原+新测试 324 passed in47.86s、0 skipped/xfail。原超时、断言、冻结金标与门禁未放宽，文件 SQLite 策略未变。修复后真实本机 HTTP 的 hash 冒烟8/8通过、0云调用，报告 /private/tmp/shopping-business-postfix-20261008.json。
+真实云与录像历史产物保持不变；云报告源码指纹对应 5df155e，存储修复发生在其后，未重跑付费请求。当前文档统一324项并说明前后证据界限。后续仅需核对本修复提交的远端双版本 CI，再创建 v0.1.0-demo Release 与媒体/证据附件；最终状态以 Release 的实际 SHA 与运行链接为准。

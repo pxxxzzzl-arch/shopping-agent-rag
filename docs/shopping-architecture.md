@@ -44,6 +44,8 @@ EvidenceIndex 对资料分块、按来源去重，支持 BM25、精确余弦向�
 
 响应分别列 configured_embedding_provider/model、requested_retrieval_mode、effective_retrieval_modes、retrieval_diagnostics。请求局部 ContextVar 随 async/to_thread 传递，避免并发请求共享“最近一次结果”。工具等待超时后后台线程可能晚完成，响应复制已完成记录，不把晚返回的向量结果写成当时成功。
 
+内存 SQLite 使用容量为 1、禁止额外连接的 QueuePool：保留同一个内存数据库，同时让各会话排队取得连接，防止同一 DBAPI 事务被并发会话交错读写或回滚。新增测试在写事务未提交时启动读会话，核验不暴露未提交事件、不丢失最终提交；文件数据库连接策略保持原样。这项修复发生在真实云冒烟之后，历史云报告仍对应 5df155e 的源码指纹，修复后通过离线测试与远端 CI 验证。
+
 ## 实验链路
 
 稳定用户分桶，control 使用 BM25、treatment 使用 hybrid；曝光与点击/购买按请求和用户归因，记录降级和离线回放。只有实验设施，没有真实用户因果效果、CTR 或 GMV 提升。

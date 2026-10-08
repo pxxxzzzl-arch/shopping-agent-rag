@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, create_engine, delete, event, func, select
 from sqlalchemy.orm import registry, relationship, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import QueuePool
 
 
 @dataclass(frozen=True, slots=True)
@@ -331,7 +331,10 @@ class CatalogStore:
         if database_url.startswith("sqlite:"):
             engine_options["connect_args"] = {"check_same_thread": False}
             if database_url in {"sqlite://", "sqlite:///:memory:"}:
-                engine_options["poolclass"] = StaticPool
+                # One in-memory database needs one connection. Queue its
+                # checkouts so concurrent sessions cannot interleave reads,
+                # commits or rollbacks on the same DBAPI transaction.
+                engine_options.update(poolclass=QueuePool, pool_size=1, max_overflow=0)
 
         self.engine = create_engine(database_url, **engine_options)
         if database_url.startswith("sqlite:"):
