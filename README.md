@@ -27,6 +27,22 @@ curl -X POST http://127.0.0.1:8000/api/v1/shop/recommend \
 
 接口说明与 RAG、Agent、A/B 的离线复现见 [Python 导购文档](python/SHOPPING_AGENT.md)。本机默认导入 30 件**合成**商品、6 条**合成** FAQ；价格与库存也仅是本地演示快照。第四套独立合成题的首跑证据和当前同题回归在文档中分开列示。容器配置为 `docker-compose.shopping.yml`，仅绑定本机地址；未经鉴权和真实数据授权，不用于公开服务。
 
+### 主业务可选百炼 embedding
+
+无需本地模型。先在本机设置 `SHOPPING_EMBEDDING_API_KEY`（或 `DASHSCOPE_API_KEY`），再从 `python/` 目录运行：
+
+```bash
+export SHOPPING_EMBEDDING_PROVIDER=bailian
+export SHOPPING_EMBEDDING_MODEL=text-embedding-v4
+export SHOPPING_EMBEDDING_ALLOW_REMOTE=true
+export SHOPPING_RETRIEVAL_MODE=hybrid
+.venv/bin/python -m uvicorn shopping_agent.app:app --host 127.0.0.1 --port 8000
+```
+
+默认百炼地址为北京 `https://dashscope.aliyuncs.com/compatible-mode/v1`，地域需与 Key 匹配。商品、FAQ、混合路线共用适配器，只有实际 vector/hybrid 才调用 embedding；启动、health、BM25 零云调用。故障明确回退 BM25，响应分列配置与实际执行信息；索引失败缓存，恢复后重启或显式刷新索引。回滚设 `SHOPPING_EMBEDDING_PROVIDER=hash`、清空模型、关闭 `SHOPPING_EMBEDDING_ALLOW_REMOTE` 并重启。详细配置、恢复与证据见 [主 API 百炼说明](python/SHOPPING_AGENT.md#主-api-使用百炼无需本地-embedding-模型)。本轮主 API 只做受控 HTTP 验证，未新增真实云调用；下列历史真实成绩属于独立 benchmark。
+
+2026-10-08 主业务受控验收：新增 **43 passed**、完整 **317 passed**，四套原门禁通过；43 个场景收到 309 次本机 HTTP，与适配器计数逐项一致。冻结数据、旧测试和历史报告未改。详见 [受控 HTTP 报告](python/reports/business_embedding_integration_20261008T003757Z.json)。
+
 ### 真实 embedding 检索评测入口
 
 本轮已按用户选择接入**阿里云百炼 `text-embedding-v4`（1024 维）**，无需本地 embedding 模型。从 `python/` 目录执行；先在本机环境配置 `DASHSCOPE_API_KEY` 或 `SHOPPING_EMBEDDING_API_KEY`，不要把密钥写入代码。`--allow-remote` 明确允许发送仓库合成文本，输出必须为新路径：
@@ -39,7 +55,7 @@ export SHOPPING_BENCHMARK_OUTPUT="$(mktemp -d)/embedding.json"
   --output "$SHOPPING_BENCHMARK_OUTPUT"
 ```
 
-比较 BM25、hash-surrogate 向量、百炼真实向量和混合检索，记录 32 条冻结合成题的逐题来源、Recall@5/MRR@5、实际 HTTP 调用数、Token 用量、耗时及模式。标签只用于评分；3 条无答案的检索返回不能解释成安全拒答。密钥不写入报告；模型不可达、向量异常或任何降级均非零退出，缺失成绩为 null。原本机 Ollama 入口保留，服务默认无密钥离线回退；远程接入位于独立评测 CLI，旧业务代码与 CI 未改。
+比较 BM25、hash-surrogate 向量、百炼真实向量和混合检索，记录 32 条冻结合成题的逐题来源、Recall@5/MRR@5、实际 HTTP 调用数、Token 用量、耗时及模式。标签只用于评分；3 条无答案的检索返回不能解释成安全拒答。密钥不写入报告；模型不可达、向量异常或任何降级均非零退出，缺失成绩为 null。原本机 Ollama 入口保留，服务默认无密钥离线回退；主 API 已复用同一个百炼适配器（配置见下），CI 保持离线。
 
 2026-10-07 百炼真实首跑：BM25/hash 向量/百炼向量/百炼混合 Recall@5 分别 **29/29、28/29、29/29、29/29**，MRR@5 分别 **0.894828、0.845977、0.790230、0.931034**。真实两路各 32 题、零降级，每路 42 次 HTTP 请求、4,265 个 API 报告 Token；合计公开价估算约 **¥0.004265**，实际账单未知。这是合成题检索比较，真实向量 MRR 低于 BM25 的结果保留，不能推广为线上提升。完整测试 **274 passed、0 skipped**，四套旧门禁通过。模型/接口和计费来源见 [百炼官方文档](https://help.aliyun.com/zh/model-studio/embedding-interfaces-compatible-with-openai)，详细复现见 [评测说明](python/SHOPPING_AGENT.md#独立-embedding-检索对比)与 [进度](PROGRESS.md)。
 

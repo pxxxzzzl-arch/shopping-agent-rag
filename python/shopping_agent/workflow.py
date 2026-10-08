@@ -8,6 +8,7 @@ import re
 import threading
 import time
 import uuid
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
@@ -19,16 +20,23 @@ from .agent_roles import (
     PlanningInput, VerificationAgent, VerificationInput,
 )
 from .config import Settings
+from .embeddings import create_embedding
 from .constraints import Condition, judge_conditions, judgments_are_current, parse_conditions
 from .conversation import ConversationStore
 from .experiments import Assignment, ExperimentStore
 from .product_requirements import claim_excerpt, missing_claims, required_claims
 from .retrieval import (
-    EvidenceDocument, EvidenceIndex, HashEmbedding, OllamaEmbedding, RetrievalHit,
+    EvidenceDocument, EvidenceIndex, RetrievalHit, SearchResult,
 )
-from .schemas import EvidenceRef, Recommendation, ShopRequest, ShopResponse
+from .schemas import EvidenceRef, Recommendation, RetrievalDiagnostic, ShopRequest, ShopResponse
 from .seed import seed_demo_data, seed_demo_faq_data
 from .storage import CatalogStore, Product, verbatim_source_text
+
+
+# Context follows asyncio tasks and to_thread; no shared last-request state.
+_retrieval_records: ContextVar[dict[str, RetrievalDiagnostic] | None] = ContextVar(
+    "shopping_retrieval_records", default=None
+)
 
 
 class ShoppingState(TypedDict, total=False):
@@ -556,14 +564,7 @@ class ShoppingService:
         self.store = store
         self.composer = composer
         self.settings = settings or Settings()
-        self.embedding = (
-            OllamaEmbedding(
-                self.settings.embedding_model,
-                self.settings.embedding_base_url,
-                self.settings.embedding_timeout_seconds,
-            )
-            if self.settings.embedding_model else HashEmbedding()
-        )
+        self.embedding = create_embedding(self.settings)
         self.categories = sorted(
             {product.category for product in store.list_products(in_stock_only=False)},
             key=len,
@@ -625,16 +626,36 @@ class ShoppingService:
         self.retriever = EvidenceIndex(
             [document for document in documents if document.product_id is not None],
             self.embedding,
+            lazy_vector=self.embedding.provider == "bailian",
+            on_search=lambda result, index: self._record_retrieval("product", result, index),
         )
         self.faq_retriever = EvidenceIndex(
             [document for document in documents if document.source_type == "answer"],
             self.embedding,
+            lazy_vector=self.embedding.provider == "bailian",
+            on_search=lambda result, index: self._record_retrieval("faq", result, index),
         )
         self.knowledge_agent = KnowledgeAgent(
             self.store, self.faq_retriever, self.settings.tool_timeout_seconds
         )
         self.categories = sorted({p.category for p in products}, key=len, reverse=True)
         self._indexed_revisions = revision
+
+    def _record_retrieval(self, route: str, result: SearchResult, index: EvidenceIndex) -> None:
+        records = _retrieval_records.get()
+        if records is None:
+            return
+        used = result.actual_mode in {"vector", "hybrid"} and bool(index.documents)
+        records[route] = RetrievalDiagnostic(
+            requested_mode=result.requested_mode,
+            actual_mode=result.actual_mode,
+            actual_provider=self.embedding.provider if used else "bm25",
+            embedding_used=used,
+            status="fallback" if result.fallback_reason else "success",
+            fallback_reason=result.fallback_reason,
+            index_state=("failed" if index.vector_error else
+                         "ready" if index.vector is not None else "lazy"),
+        )
 
     def _refresh_if_changed(self) -> None:
         current = self.store.document_revision_signature()
@@ -1087,6 +1108,8 @@ class ShoppingService:
         )
         if mode not in {"bm25", "vector", "hybrid"}:
             mode = "bm25"
+        records: dict[str, RetrievalDiagnostic] = {}
+        token = _retrieval_records.set(records)
         try:
             result = await self.graph.ainvoke({
                 "request": request, "mode": mode,
@@ -1103,6 +1126,27 @@ class ShoppingService:
                 route="product", tool_trace=["planner", "failure_fallback"],
                 requested_retrieval_mode=mode, conversation_id=request.conversation_id,
             )
+        finally:
+            _retrieval_records.reset(token)
+        response.configured_embedding_provider = self.embedding.provider
+        response.configured_embedding_model = self.embedding.model
+        # A timed-out worker can finish later. Copy completed records now and
+        # never claim vector success for an incomplete tool invocation.
+        response.retrieval_diagnostics = {
+            key: value.model_copy(deep=True) for key, value in records.copy().items()
+            if response.effective_retrieval_modes.get(key) == value.actual_mode
+        }
+        for route in (("product", "faq") if response.route == "mixed" else (response.route,)):
+            if route not in response.retrieval_diagnostics:
+                actual = response.effective_retrieval_modes.get(route)
+                failed = any("失败" in warning for warning in response.warnings)
+                response.retrieval_diagnostics[route] = RetrievalDiagnostic(
+                    requested_mode=mode, actual_mode=actual,
+                    actual_provider=None, embedding_used=False,
+                    status="failed" if failed else "not_used",
+                    fallback_reason="; ".join(response.warnings) if failed else None,
+                    index_state="unknown",
+                )
         response.warnings.extend(preflight_warnings)
         if self.experiments and assignment is not None:
             try:

@@ -9,7 +9,8 @@ from http.client import HTTPConnection
 import json
 import math
 import re
-from typing import Protocol, Sequence
+import threading
+from typing import Callable, Protocol, Sequence
 from urllib.parse import urlsplit
 
 
@@ -239,6 +240,8 @@ class EvidenceIndex:
     def __init__(
         self, documents: Sequence[EvidenceDocument],
         embedding: EmbeddingAdapter | None = None,
+        *, lazy_vector: bool = False,
+        on_search: Callable[[SearchResult, EvidenceIndex], None] | None = None,
     ):
         self.calls = 0
         self.documents = tuple(chunk_documents(documents))
@@ -246,10 +249,28 @@ class EvidenceIndex:
         self.embedding = embedding or HashEmbedding()
         self.vector: VectorRetriever | None = None
         self.vector_error: str | None = None
-        try:
-            self.vector = VectorRetriever(self.documents, self.embedding)
-        except Exception as exc:
-            self.vector_error = type(exc).__name__
+        self._vector_attempted = False
+        self._vector_lock = threading.Lock()
+        self.on_search = on_search
+        if not lazy_vector:
+            self._ensure_vector()
+
+    def _ensure_vector(self) -> None:
+        # Cache a failed build too. Recovery is an explicit new index/snapshot,
+        # rather than charging every subsequent request for another failed build.
+        with self._vector_lock:
+            if self._vector_attempted:
+                return
+            self._vector_attempted = True
+            try:
+                self.vector = VectorRetriever(self.documents, self.embedding)
+            except Exception as exc:
+                self.vector_error = self._safe_error(exc)
+
+    def _safe_error(self, exc: Exception) -> str:
+        # Shared cloud transport deliberately produces credential-free errors.
+        # Other/custom adapters remain type-only, preserving the old boundary.
+        return str(exc) if getattr(self.embedding, "safe_errors", False) else type(exc).__name__
 
     @staticmethod
     def _deduplicate(hits: Sequence[RetrievalHit], limit: int) -> list[RetrievalHit]:
@@ -269,12 +290,22 @@ class EvidenceIndex:
         self, query: str, product_ids: set[str] | None = None,
         limit: int = 5, mode: str = "bm25",
     ) -> SearchResult:
+        result = self._search(query, product_ids, limit, mode)
+        if self.on_search is not None:
+            self.on_search(result, self)
+        return result
+
+    def _search(
+        self, query: str, product_ids: set[str] | None = None,
+        limit: int = 5, mode: str = "bm25",
+    ) -> SearchResult:
         self.calls += 1
         if mode not in {"bm25", "vector", "hybrid"}:
             raise ValueError(f"Unknown retrieval mode: {mode}")
         sparse = self.sparse.search(query, product_ids, max(limit * 4, 20))
         if mode == "bm25":
             return SearchResult(self._deduplicate(sparse, limit), mode, "bm25")
+        self._ensure_vector()
         if self.vector is None:
             return SearchResult(
                 self._deduplicate(sparse, limit), mode, "bm25",
@@ -285,7 +316,7 @@ class EvidenceIndex:
         except Exception as exc:
             return SearchResult(
                 self._deduplicate(sparse, limit), mode, "bm25",
-                f"vector retrieval failed: {type(exc).__name__}",
+                f"vector retrieval failed: {self._safe_error(exc)}",
             )
         if mode == "vector":
             return SearchResult(self._deduplicate(vector, limit), mode, "vector")

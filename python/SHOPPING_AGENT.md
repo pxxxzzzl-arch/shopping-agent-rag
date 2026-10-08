@@ -107,7 +107,44 @@ export SHOPPING_EMBEDDING_BASE_URL=http://127.0.0.1:11434
 export SHOPPING_RETRIEVAL_MODE=hybrid
 ```
 
-服务经 Ollama `/api/embed` 使用真实 embedding。当前实现只允许本机 Ollama 地址，避免无意上传商品或问题；未配置时无外部 API 费用。建索引会批量调用一次 embedding，向量/混合查询按请求调用；本地模型的计算成本与延迟取决于设备，评测只报告调用数与实测延迟，未测电费或硬件成本。端点失败时会回退 BM25 并在响应及实验日志中记录降级。
+服务经 Ollama `/api/embed` 使用真实 embedding。Ollama 适配器只允许本机地址；百炼远程路径需另外显式开启（见下节）。未配置时无外部 API 费用。建索引会批量调用一次 embedding，向量/混合查询按请求调用；本地模型的计算成本与延迟取决于设备，评测只报告调用数与实测延迟，未测电费或硬件成本。端点失败时会回退 BM25 并在响应及实验日志中记录降级。
+
+### 主 API 使用百炼（无需本地 embedding 模型）
+
+商品、FAQ 和混合路线与独立 benchmark 共用 `embeddings.BailianEmbedding`；生产代码不导入评测器。模型为 `text-embedding-v4`、1024 维；保留原排序与事实核验。默认 `provider` 未设且 `model` 为空时使用离线 hash；仅设置模型名时仍选择本机 Ollama。显式 provider 支持 `hash`、`ollama`、`bailian`。
+
+从 `python/` 启动前设置（密钥仅在本机环境中设置，不写入配置文件或聊天）：
+
+```bash
+export SHOPPING_EMBEDDING_PROVIDER=bailian
+export SHOPPING_EMBEDDING_MODEL=text-embedding-v4
+export SHOPPING_EMBEDDING_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+export SHOPPING_EMBEDDING_ALLOW_REMOTE=true
+export SHOPPING_RETRIEVAL_MODE=hybrid
+# 本机设置 SHOPPING_EMBEDDING_API_KEY；未设置时读取 DASHSCOPE_API_KEY
+.venv/bin/python -m uvicorn shopping_agent.app:app --host 127.0.0.1 --port 8000
+```
+
+`python/.env.example` 是示例，服务不会自动加载 `.env`。百炼缺 Key、未允许远程、未知 provider 或非法端点均在启动时报配置错误，不偷偷换成 hash。环境中已有 Key 不会自动选用百炼。仅接受官方 HTTPS 地址；带端口的回环 HTTP 仅供受控协议测试。真实启用后会把商品/FAQ 来源和查询文本发送至百炼，使用者应先取得资料授权；本轮未新增真实云调用。
+
+百炼索引按商品与 FAQ 分开延迟创建：启动、health、纯 BM25 请求均零 embedding HTTP；第一次 vector/hybrid 查询只创建所需语料索引。每批最多 10 条，同版本索引复用，并发首次查询每份语料只建一次。来源版本变化后新建索引，价格、库存和引用仍按当前数据库复核。默认离线及独立 benchmark 保留原预建行为和统计口径。
+
+响应新增 `configured_embedding_provider/model` 与按 product/faq 分列的 `retrieval_diagnostics`，包含请求模式、实际模式、实际 provider、是否成功使用 embedding、状态、降级原因和索引状态；原 `effective_retrieval_modes` 保留。`embedding_used=false` 表示没有成功使用向量结果，故障前可能已有 HTTP 尝试，不等于零调用。空候选时记 `not_used`；工具超时且未完成时不声称向量成功。配置百炼而实际回退 BM25 会明确列出 HTTP 状态、传输超时或非法向量原因，远端错误正文不会进入响应。
+
+查询 embedding 故障解除后，下次请求可自动恢复，沿用已有索引。建索引失败会缓存失败结果，后续请求回退 BM25，避免反复支付重建成本；恢复后重启本机服务，或由进程内管理代码显式调用 `service.refresh_index()`，下一次向量请求重建。没有新增公开管理接口；更新来源版本也会使缓存失效。工具超时取消等待后，底层线程的网络调用可能持续到传输超时，诊断不把未完成调用写成成功。
+
+回滚到离线模式：停止本机服务，执行以下设置后用相同启动命令重启；数据库无需改变：
+
+```bash
+export SHOPPING_EMBEDDING_PROVIDER=hash
+export SHOPPING_EMBEDDING_MODEL=
+export SHOPPING_EMBEDDING_ALLOW_REMOTE=false
+export SHOPPING_RETRIEVAL_MODE=bm25
+```
+
+本轮验收使用真实 FastAPI lifespan 与本机 HTTP 协议服务器，仅替代外部供应商；测试覆盖三路线×两种向量模式、零调用 BM25、复用/并发、来源更新删除、401/429/500/超时/非法向量、降级恢复、预算库存和密钥隔离。受控向量仅验证接线与契约，报告标为 `controlled_http`，不计算真实语义分数。2026-10-07 的真实云成绩仍只属于下面的独立 benchmark，不能当作主 API 效果；主 API 真实云冒烟留为后续可选验证。
+
+2026-10-08 最终验收：新增测试 **43 passed in 27.04s**，完整测试 **317 passed in 47.69s、0 skipped**（保留原 274 项，仅排除旧 numpy A/B 测试）；四套原质量门禁全部通过。每次新测试与完整测试分别有 43 个受控场景、服务器实际收到 309 次 HTTP，逐场景与共享适配器 attempted 统计一致。临时断开百炼工厂接线的 mixed API 测试先 `1 failed`，恢复后同命令 `1 passed`。完整命令、输入/代码 SHA256、逐请求模式、服务器日志和恢复结果在 [本轮证据报告](reports/business_embedding_integration_20261008T003757Z.json)；不包含真实密钥或真实语义分数。
 
 ## 导入获授权资料
 

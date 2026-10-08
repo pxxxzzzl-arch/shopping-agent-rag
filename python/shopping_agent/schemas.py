@@ -57,6 +57,18 @@ class Recommendation(BaseModel):
     condition_judgments: list[ConditionJudgment] = Field(default_factory=list)
 
 
+class RetrievalDiagnostic(BaseModel):
+    """Request-local execution facts, separate from configured capabilities."""
+
+    requested_mode: Literal["bm25", "vector", "hybrid"]
+    actual_mode: str | None = None
+    actual_provider: str | None = None
+    embedding_used: bool = False
+    status: Literal["success", "fallback", "failed", "not_used"]
+    fallback_reason: str | None = None
+    index_state: Literal["lazy", "ready", "failed", "unknown"]
+
+
 class ShopResponse(BaseModel):
     request_id: str
     user_id: str
@@ -76,6 +88,9 @@ class ShopResponse(BaseModel):
     variant: str | None = None
     routing_reason: str = ""
     knowledge_evidence: list[EvidenceRef] = Field(default_factory=list)
+    configured_embedding_provider: str = "hash"
+    configured_embedding_model: str | None = None
+    retrieval_diagnostics: dict[str, RetrievalDiagnostic] = Field(default_factory=dict)
 
 
 class EventRequest(BaseModel):
