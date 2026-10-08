@@ -1,3 +1,5 @@
+> 历史教学参考：本文描述早期/上游方案，不代表当前 Python 导购实现或实测结果。现役说明见 [shopping-architecture.md](shopping-architecture.md)。
+
 # 代码讲解指南 — 从零读懂每一行
 
 > 面向小白的逐文件讲解,帮助你在面试中自信地解释每一个技术细节。

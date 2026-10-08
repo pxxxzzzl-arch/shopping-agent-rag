@@ -125,7 +125,7 @@ export SHOPPING_RETRIEVAL_MODE=hybrid
 .venv/bin/python -m uvicorn shopping_agent.app:app --host 127.0.0.1 --port 8000
 ```
 
-`python/.env.example` 是示例，服务不会自动加载 `.env`。百炼缺 Key、未允许远程、未知 provider 或非法端点均在启动时报配置错误，不偷偷换成 hash。环境中已有 Key 不会自动选用百炼。仅接受官方 HTTPS 地址；带端口的回环 HTTP 仅供受控协议测试。真实启用后会把商品/FAQ 来源和查询文本发送至百炼，使用者应先取得资料授权；本轮未新增真实云调用。
+`python/.env.example` 是示例，服务不会自动加载 `.env`。百炼缺 Key、未允许远程、未知 provider 或非法端点均在启动时报配置错误，不偷偷换成 hash。环境中已有 Key 不会自动选用百炼。仅接受官方 HTTPS 地址；带端口的回环 HTTP 仅供受控协议测试。真实启用后会把商品/FAQ 来源和查询文本发送至百炼，使用者应先取得资料授权。2026-10-08 已按用户授权完成合成资料的主 API 真实云冒烟，见下文。
 
 百炼索引按商品与 FAQ 分开延迟创建：启动、health、纯 BM25 请求均零 embedding HTTP；第一次 vector/hybrid 查询只创建所需语料索引。每批最多 10 条，同版本索引复用，并发首次查询每份语料只建一次。来源版本变化后新建索引，价格、库存和引用仍按当前数据库复核。默认离线及独立 benchmark 保留原预建行为和统计口径。
 
@@ -142,9 +142,19 @@ export SHOPPING_EMBEDDING_ALLOW_REMOTE=false
 export SHOPPING_RETRIEVAL_MODE=bm25
 ```
 
-本轮验收使用真实 FastAPI lifespan 与本机 HTTP 协议服务器，仅替代外部供应商；测试覆盖三路线×两种向量模式、零调用 BM25、复用/并发、来源更新删除、401/429/500/超时/非法向量、降级恢复、预算库存和密钥隔离。受控向量仅验证接线与契约，报告标为 `controlled_http`，不计算真实语义分数。2026-10-07 的真实云成绩仍只属于下面的独立 benchmark，不能当作主 API 效果；主 API 真实云冒烟留为后续可选验证。
+主业务接入阶段验收使用真实 FastAPI lifespan 与本机 HTTP 协议服务器，仅替代外部供应商；测试覆盖三路线×两种向量模式、零调用 BM25、复用/并发、来源更新删除、401/429/500/超时/非法向量、降级恢复、预算库存和密钥隔离。受控向量仅验证接线与契约，报告标为 `controlled_http`，不计算真实语义分数。2026-10-07 的真实云成绩属于下面的独立 benchmark，不能当作主 API 效果；2026-10-08 的主接口真实调用证据单列如下。
 
-2026-10-08 最终验收：新增测试 **43 passed in 27.04s**，完整测试 **317 passed in 47.69s、0 skipped**（保留原 274 项，仅排除旧 numpy A/B 测试）；四套原质量门禁全部通过。每次新测试与完整测试分别有 43 个受控场景、服务器实际收到 309 次 HTTP，逐场景与共享适配器 attempted 统计一致。临时断开百炼工厂接线的 mixed API 测试先 `1 failed`，恢复后同命令 `1 passed`。完整命令、输入/代码 SHA256、逐请求模式、服务器日志和恢复结果在 [本轮证据报告](reports/business_embedding_integration_20261008T003757Z.json)；不包含真实密钥或真实语义分数。
+2026-10-08 主业务接入阶段验收：新增测试 **43 passed in 27.04s**，完整测试 **317 passed in 47.69s、0 skipped**（保留原 274 项，仅排除旧 numpy A/B 测试）；四套原质量门禁全部通过。每次新测试与完整测试分别有 43 个受控场景、服务器实际收到 309 次 HTTP，逐场景与共享适配器 attempted 统计一致。临时断开百炼工厂接线的 mixed API 测试先 `1 failed`，恢复后同命令 `1 passed`。完整命令、输入/代码 SHA256、逐请求模式、服务器日志和恢复结果在 [本轮证据报告](reports/business_embedding_integration_20261008T003757Z.json)；不包含真实密钥或真实语义分数。
+
+## 主接口真实云验证与展示收尾（2026-10-08）
+
+在独立内存 SQLite 中启动真实 Uvicorn/FastAPI HTTP 服务，仅发送仓库合成来源和合成问句到百炼。8 个场景全部通过：BM25 零调用、商品 vector、FAQ hybrid/vector、混合 hybrid、重复混合复用及两条无答案。共 **17/17 个 embedding HTTP 成功、17 个不同 request ID、响应 text-embedding-v4、1024 维、3,665 个 API 报告 Token**；实际账单、模型权重版本和真实语义准确率未知。
+
+[主接口真实报告](reports/business_cloud_smoke_20261008T005656Z.json)保存输入/代码 SHA256、完整响应、实际模式和调用增量。重复混合仅增加 2 次 query embedding，无重新建索引；BM25、无能力依据和预算无结果场景均为零新增云调用。这是接口与合成业务契约验证，不是新的独立语义效果评测。
+
+新增 business_smoke CLI 默认 hash，真实模式须显式 --allow-remote，默认 24 次调用预算、已有输出拒绝覆盖、失败非零退出。发布工具新增 5 个测试，完整 **322 passed in 47.18s、0 skipped/xfail**；四套原门禁继续 PASS，原测试/数据/历史报告保持不变。
+
+当前展示使用独立内存数据库：在仓库根目录运行 `./scripts/run_shopping_demo.sh --port 8000`，访问本机首页。默认离线 hash，无需模型 Key。界面直接调用真实生产 API；[49 秒浏览器录像](../docs/demo/media/shopping-agent-demo.webm)记录五次实际请求，录像期间云调用为 0；底部单列已保存的云验证结果，不混作实时百炼调用。操作手册见 [demo-guide.md](../docs/demo-guide.md)，当前架构与求职材料见 [shopping-architecture.md](../docs/shopping-architecture.md)、[shopping-resume.md](../docs/shopping-resume.md)。
 
 ## 导入获授权资料
 

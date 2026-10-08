@@ -1,3 +1,5 @@
+> 历史教学参考：本文描述早期/上游方案，不代表当前 Python 导购实现或实测结果。现役说明见 [shopping-architecture.md](shopping-architecture.md)。
+
 # 系统架构设计文档
 
 > 本文主要记录[上游教学项目](https://github.com/bcefghj/multi-agent-ecommerce-system)的架构设想，图中的 Redis、Milvus、MySQL/WMS 与四 Agent 流程不能直接当作新增 Python 导购框架的运行事实。新增框架的实际模块、SQLite 存储、检索模式和离线验证见 [SHOPPING_AGENT.md](../python/SHOPPING_AGENT.md)。下文延迟数字仅用于说明串并行依赖，没有生产压测或 P99 证据。

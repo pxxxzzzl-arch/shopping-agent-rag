@@ -1,3 +1,5 @@
+> 历史教学参考：本文描述早期/上游方案，不代表当前 Python 导购实现或实测结果。现役说明见 [shopping-resume.md](shopping-resume.md)。
+
 # AI 应用 / Agent 开发岗位简历填写框架
 
 本项目源自 [bcefghj/multi-agent-ecommerce-system](https://github.com/bcefghj/multi-agent-ecommerce-system)。本页用于核对和组织个人经历，**不是可以直接复制的项目成果**。只写自己确实完成、能展示代码和解释取舍的部分；把上游原有功能、学习过程与个人改造分开说明。

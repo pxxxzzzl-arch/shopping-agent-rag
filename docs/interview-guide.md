@@ -1,3 +1,5 @@
+> 历史教学参考：本文描述早期/上游方案，不代表当前 Python 导购实现或实测结果。现役说明见 [shopping-resume.md](shopping-resume.md)。
+
 # 多 Agent 电商推荐系统 — 面试准备与事实核对
 
 > 本文档保留上游教学项目的技术问答，并提供个人经历的核对框架。上游来源：[bcefghj/multi-agent-ecommerce-system](https://github.com/bcefghj/multi-agent-ecommerce-system)。新增的 Python 导购框架位于 `python/shopping_agent/`，实现与复现边界见 `python/SHOPPING_AGENT.md`。原有 `python/agents/`、Go、Java 示例及其中的设计方案，不自动算作本人完成的新框架工作。

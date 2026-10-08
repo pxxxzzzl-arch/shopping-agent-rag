@@ -1,3 +1,5 @@
+> 历史教学参考：本文描述早期/上游方案，不代表当前 Python 导购实现或实测结果。现役说明见 [release-status.md](release-status.md)。
+
 ---
 name: 多Agent电商推荐系统
 overview: 构建一个面向面试的企业级多Agent电商推荐与营销系统项目，包含Java/Go/Python三语言实现、配套八股文、简历模板和面试STAR法指南，从零到面试全流程覆盖。

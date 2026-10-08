@@ -1,3 +1,5 @@
+> 历史计划：保留原始规划，不作为当前完成状态；现役状态见 [release-status.md](docs/release-status.md)。
+
 ---
 name: 多Agent电商推荐系统
 overview: 构建一个面向面试的企业级多Agent电商推荐与营销系统项目，包含Java/Go/Python三语言实现、配套八股文、简历模板和面试STAR法指南，从零到面试全流程覆盖。
