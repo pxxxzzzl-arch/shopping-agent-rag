@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements-shopping-dev.txt
       - name: Run complete shopping framework tests (exclude legacy numpy test)
-        run: python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py
+        run: python -m pytest tests -q -p no:cacheprovider --ignore=tests/test_ab_test.py --durations=10
       - name: Evaluate all frozen synthetic catalogs
         run: |
           set -euo pipefail

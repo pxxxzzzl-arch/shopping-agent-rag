@@ -160,7 +160,7 @@ def assert_execution(body, mode, routes, *, fallback=None):
     assert body["configured_embedding_model"] == "text-embedding-v4"
     assert body["requested_retrieval_mode"] == mode
     actual = "bm25" if fallback else mode
-    assert body["effective_retrieval_modes"] == {route: actual for route in routes}
+    assert body["effective_retrieval_modes"] == {route: actual for route in routes}, body
     for route in routes:
         diagnostic = body["retrieval_diagnostics"][route]
         assert diagnostic["requested_mode"] == mode
